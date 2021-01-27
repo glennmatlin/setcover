@@ -1,4 +1,4 @@
-weightedsetcover
+Weighted Set Cover
 ================
 
 A simple weighted set cover problem solver. It is a greedy algorithm which approximates the optimal solution.
