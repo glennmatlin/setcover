@@ -1,7 +1,7 @@
 Weighted Set Cover
 ================
 
-A simple weighted set cover problem solver. It is a greedy algorithm which approximates the optimal solution.
+A simple weighted set cover problem greedy_solver. It is a greedy algorithm which approximates the optimal solution.
 
 The idea of the algorithm is to pick the the most cost-effective set that is not covered yet.
 

@@ -7,6 +7,9 @@ from src.set import WeightedSet
 
 MAXPRIORITY = 999999
 
+# TODO rename 'subsets' to 'set_cover'
+# TODO Decompose `problem` variable
+
 
 class WeightedSetCoverProblem:
     # TODO Function argument for limiting sets selected
@@ -15,13 +18,11 @@ class WeightedSetCoverProblem:
 
     def __init__(self, weighted_sets: list[tuple]):
         self.weighted_sets = weighted_sets
-        self.universe, self.set_ids, self.problem_sets, self.weights = self.make_data(
+        self.problem, self.set_ids, self.subsets, self.weights = self.make_data(
             self
         )
-        self.pq = self.prioritize(self)
-        # self.selection, self.total_weight = self.solver(self)
-        # self.cover_solution = None
-        # self.total_weight = None
+        self.set_queue = self.prioritize(self)
+        self.cover_solution, self.total_weight = None, None
 
     @classmethod
     def from_lists(cls, ids, sets, weights):
@@ -44,46 +45,68 @@ class WeightedSetCoverProblem:
         return cls(weighted_sets)
 
     @staticmethod
-    def make_data(self):# -> (OrderedDict[str:set], list[str], list[set], list[float]):
+    def make_data(self):  # -> (Dict[Dict[str:set[str]]], list[str], list[set], list[float]):
         """
         input: WeightedSet(id="A10", set=["Glenn"], weight=100.0)
-        output: universe, ids, problem_sets, weights
-            universe: OrderedDict[str:set]
+        output: problem, ids, subsets, weights
+            problem: Dict[Dict[str:set[str]]]
             set_ids: list[str]
-            problem_sets: list[set[str]]
+            subsets: list[set[str]]
             weights: list[float]
         """
         # TODO Unit test
-        universe = OrderedDict()
+        problem = dict()
+        # TODO DefaultDict instead of ordered?
+        problem['id_key'] = OrderedDict()
+        problem['ele_key'] = OrderedDict()
         set_ids = []
-        sets = []
+        subsets = []
         weights = []
         for weighted_set in self.weighted_sets:
+            # Make lists
             set_ids.append(weighted_set.id)
-            sets.append(set(weighted_set.set))
+            subsets.append(set(weighted_set.set))
             weights.append(weighted_set.weight)
-            for ele in weighted_set.set:
-                if ele not in universe:
-                    universe[ele] = set()
-                universe[ele].add(weighted_set.id)
+            # Make dicts
+            problem['id_key'][weighted_set.id] = dict()
+            problem['id_key'][weighted_set.id]['set'] = set(weighted_set.set)
+            problem['id_key'][weighted_set.id]['weight'] = weighted_set.weight
+            for set_element in weighted_set.set:
+                if set_element not in problem['ele_key']:
+                    problem['ele_key'][set_element] = set()
+                problem['ele_key'][set_element].add(weighted_set.id)
 
-        return universe, set_ids, sets, weights
+        return problem, set_ids, subsets, weights
+
+    @staticmethod
+    def _prioritize(self):
+        # TODO Make a unit test
+        set_queue = SetQueue()
+        for index, subset in enumerate(
+                self.subsets
+        ):  # add all sets to the priority queue
+            if len(subset) == 0:
+                set_queue.add_task(index, MAXPRIORITY)
+            else:
+                set_queue.add_task(index, float(self.weights[index]) / len(subset))
+        return set_queue
+
 
     @staticmethod
     def prioritize(self):
-        # TODO How do I make a unit test for something that
-        pq = SetQueue()
-        for index, problem_set in enumerate(
-                self.problem_sets
-        ):  # add all sets to the priorityqueue
+        # TODO Make a unit test
+        set_queue = SetQueue()
+        for set_id, problem_set, weight in zip(
+                self.set_ids, self.subsets, self.weights
+        ):  # add all sets to the priority queue
             if len(problem_set) == 0:
-                pq.add_task(index, MAXPRIORITY)
+                set_queue.add_task(set_id, MAXPRIORITY)
             else:
-                pq.add_task(index, float(self.weights[index]) / len(problem_set))
-        return pq
+                set_queue.add_task(set_id, float(weight) / len(problem_set))
+        return set_queue
 
     @staticmethod
-    def solver(self) -> (list[str], int):
+    def greedy_solver(self) -> (list[str], int):
         """
         Greedy algorithm implementation for a proximal solution for Weighted set Coverage
         pick the set which is the most cost-effective: min(w[s]/|s-C|),
@@ -93,9 +116,18 @@ class WeightedSetCoverProblem:
         Finding the most cost-effective set is done by a priority queue.
         The operation has time complexity of O(log|S|).
 
-        Input:
-        sets: a collection of sets
-        weights: corresponding weight to each set
+
+        NEEDED:
+        - List[PatientIDs]
+        - Dict{ICDCode:[PatientIDs]}
+        - Dict{ICDCode:Weight}
+
+        Inputs:
+            self.problem: Dict[Dict[str:set[str]]]
+            self.set_queue: SetQueue()
+            self.set_ids: list[str]
+            self.weights: list[float]
+            self.subsets: list[set[str]]
 
         Output:
         selected: selected set ids in order (list)
@@ -104,37 +136,49 @@ class WeightedSetCoverProblem:
         # TODO Unit test
         # TODO Record the order of ICD codes used for best set
 
-        set_indices = []
-        selected_ids = []
-        total_weight = 0
-        covered = 0
+        # elements don't cover problem -> invalid input for set cover
 
-        while covered < len(self.universe):
-            set_idx = self.pq.pop_task()  # get the most cost-effective set
-            set_indices.append(set_idx)  # record the set idx we picked
-            selected_ids.append(self.set_ids[set_idx])  # record the set itself we picked
-            total_weight += self.weights[set_idx]  # add set weight to solution total
-            covered += len(self.problem_sets[set_idx])
+        # elements = set(e for s in subsets.keys() for e in subsets[s])
+
+        u = set(self.set_ids)  # Set of all elements we want to cover
+        if elements != universe:
+            return None
+
+        # track elements of problem covered
+        covered = set()
+        cover_solution = []
+        total_weight = 0
+
+        while len(covered) < len(u):  # TODO fix this while statement
+            # (1)
+            set_id = self.set_queue.pop_task()  # get label for the most cost-effective set
+
+            # (2)
+            cover_solution.append(set_id)  # record the set itself we picked
+            picked_set = self.problem['id_key'][set_id]['set']
+            picked_weight = self.problem['id_key'][set_id]['weight']
+            total_weight += picked_weight  # add weight of set to solution total
+            covered.add(picked_set)  # add set elements to coverage track
             # TODO `covered`
             # understand `covered` var more -- this seems wrong to me bc
             # its adding length but not checking the length that was actually added
             # i thought this would not count dupe elements
 
             # Update the sets that contains the new covered elements
-            for set_element in self.problem_sets[set_idx]:  # for ele in list[str]
-                for set_id in self.universe[set_element]: # for id in set[str] <-from- dict[str:set][ele]
-                    if set_id != set_idx: # TODO Error is occuring here ... set_id is the code and set_idx is a int
-                        self.problem_sets[set_id].discard(set_element)
+            for set_element in picked_set:  # for ele in list[str]
+                for set_id in self.problem[set_element]: # for id in set[str] <-from- dict[str:set][ele]
+                    if set_id != set_id: # TODO Error is occuring here ... set_id is the code and set_idx is a int
+                        self.subsets[set_id].discard(set_element)
                         # TODO FIX ^^ TypeError: list indices must be integers or slices, not str
-                        if len(self.problem_sets[set_id]) == 0:
-                            self.pq.add_task(set_id, MAXPRIORITY)
+                        if len(self.subsets[set_id]) == 0:
+                            self.set_queue.add_task(set_id, MAXPRIORITY)
                         else:
-                            self.pq.add_task(
+                            self.set_queue.add_task(
                                 set_id,
                                 float(self.weights[set_id])
-                                / len(self.problem_sets[set_id]),
+                                / len(self.subsets[set_id]),
                             )
-            self.problem_sets[set_idx].clear()
-            self.pq.add_task(set_idx, MAXPRIORITY)
+            self.subsets[set_id].clear()
+            self.set_queue.add_task(set_id, MAXPRIORITY)
 
-        return set_indices, total_weight
+        self.cover_solution, self.total_weight = cover_solution, total_weight
