@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-__all__ = "WeightedSet"
+__all__ = ("WeightedSet")
 
 
 from collections import namedtuple
