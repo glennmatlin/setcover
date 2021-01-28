@@ -1,3 +1,5 @@
+__author__ = "Glenn Matlin"
+
 import sys
 
 # This relies on each of the submodules having an __all__ variable.
