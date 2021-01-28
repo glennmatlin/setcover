@@ -4,7 +4,7 @@ import itertools
 from heapq import heappush, heappop
 
 
-class PriorityQueue:
+class SetQueue:
     def __init__(self):
         self._pq = []
         self._entry_map = {}

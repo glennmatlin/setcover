@@ -1,12 +1,11 @@
 #!/usr/bin/python
-from collections import namedtuple
-from typing import List, Iterable
-from queue import PriorityQueue
+from typing import List, Iterable, Dict, Set
+from queue import SetQueue
 import pandas as pd
+from collections import OrderedDict
+from set import WeightedSet
 
 MAXPRIORITY = 999999
-
-WeightedSet = namedtuple("WeightedSet", "id set weight")
 
 
 class WeightedSetCoverProblem:
@@ -19,7 +18,8 @@ class WeightedSetCoverProblem:
         self.universe, self.set_ids, self.problem_sets, self.weights = self.make_data(
             self
         )
-        self.selection, self.total_weight = self.solver(self)
+        self.pq = self.prioritize(self)
+        # self.selection, self.total_weight = self.solver(self)
         # self.cover_solution = None
         # self.total_weight = None
 
@@ -44,21 +44,22 @@ class WeightedSetCoverProblem:
         return cls(weighted_sets)
 
     @staticmethod
-    def make_data(self):
+    def make_data(self):# -> (OrderedDict[str:set], List[str], List[set], List[float]):
         """
         input: WeightedSet(id="A10", set=["Glenn"], weight=100.0)
-        output: universe, problem_sets, weights
-            universe: Dict[str:set]
-            problem_sets: List[List[str]
+        output: universe, ids, problem_sets, weights
+            universe: OrderedDict[str:set]
+            set_ids: List[str]
+            problem_sets: List[Set[str]]
             weights: List[float]
         """
         # TODO Unit test
-        universe = {}
-        ids = []
+        universe = OrderedDict()
+        set_ids = []
         sets = []
         weights = []
         for weighted_set in self.weighted_sets:
-            ids.append(weighted_set.id)
+            set_ids.append(weighted_set.id)
             sets.append(set(weighted_set.set))
             weights.append(weighted_set.weight)
             for ele in weighted_set.set:
@@ -66,14 +67,14 @@ class WeightedSetCoverProblem:
                     universe[ele] = set()
                 universe[ele].add(weighted_set.id)
 
-        return universe, ids, sets, weights
+        return universe, set_ids, sets, weights
 
     @staticmethod
     def prioritize(self):
-        # TODO Unit test
-        pq = PriorityQueue()
+        # TODO How do I make a unit test for something that
+        pq = SetQueue()
         for index, problem_set in enumerate(
-            self.problem_sets
+                self.problem_sets
         ):  # add all sets to the priorityqueue
             if len(problem_set) == 0:
                 pq.add_task(index, MAXPRIORITY)
@@ -103,18 +104,16 @@ class WeightedSetCoverProblem:
         # TODO Unit test
         # TODO Record the order of ICD codes used for best set
 
-        pq = self.prioritize(self)
         set_indices = []
         selected_ids = []
         total_weight = 0
         covered = 0
 
         while covered < len(self.universe):
-            set_idx = pq.pop_task()  # get the most cost-effective set
-            set_indices.append(set_idx)  # build a list of index values
-            selected_ids.append(self.set_ids[set_idx])
-
-            total_weight += self.weights[set_idx]
+            set_idx = self.pq.pop_task()  # get the most cost-effective set
+            set_indices.append(set_idx)  # record the set idx we picked
+            selected_ids.append(self.set_ids[set_idx])  # record the set itself we picked
+            total_weight += self.weights[set_idx]  # add set weight to solution total
             covered += len(self.problem_sets[set_idx])
             # TODO `covered`
             # understand `covered` var more -- this seems wrong to me bc
@@ -122,20 +121,20 @@ class WeightedSetCoverProblem:
             # i thought this would not count dupe elements
 
             # Update the sets that contains the new covered elements
-            for set_element in self.problem_sets[set_idx]:
-                for set_id in self.universe[set_element]:
+            for set_element in self.problem_sets[set_idx]:  # for ele in List[str]
+                for set_id in self.universe[set_element]: # for id in Set[str] <-from- Dict[str:set][ele]
                     if set_id != set_idx: # TODO Error is occuring here ... set_id is the code and set_idx is a int
                         self.problem_sets[set_id].discard(set_element)
                         # TODO FIX ^^ TypeError: list indices must be integers or slices, not str
                         if len(self.problem_sets[set_id]) == 0:
-                            pq.add_task(set_id, MAXPRIORITY)
+                            self.pq.add_task(set_id, MAXPRIORITY)
                         else:
-                            pq.add_task(
+                            self.pq.add_task(
                                 set_id,
                                 float(self.weights[set_id])
                                 / len(self.problem_sets[set_id]),
                             )
             self.problem_sets[set_idx].clear()
-            pq.add_task(set_idx, MAXPRIORITY)
+            self.pq.add_task(set_idx, MAXPRIORITY)
 
         return set_indices, total_weight

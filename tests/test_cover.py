@@ -1,5 +1,6 @@
-from cover import WeightedSetCoverProblem, WeightedSet
-import pytest
+from cover import WeightedSetCoverProblem
+from set import WeightedSet
+# import pytest
 
 # TODO Get test cases from existing dataset
 # TODO sets should be ICD[Patient,Patient] since we want to find the overlapping ICD codes
@@ -24,6 +25,17 @@ def test_init():
         "Vijay": {"E50"},
     }
 
+
+def test_prioritize():
+    cover_problem = WeightedSetCoverProblem(test_weighted_sets)
+    assert cover_problem
+    assert cover_problem.universe == {
+        "Glenn": {"A10"},
+        "Jeremy": {"B20", "D40", "C30"},
+        "Ben": {"B20", "D40"},
+        "Justin": {"E50"},
+        "Vijay": {"E50"},
+    }
 
 # @pytest.mark.skip
 # def test_solver():

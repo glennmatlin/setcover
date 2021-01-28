@@ -1,8 +1,8 @@
-from queue import PriorityQueue
+from queue import SetQueue
 
 
 def test_priority_queue():
-    pq = PriorityQueue()
+    pq = SetQueue()
     pq.add_task("A10", 100.0)
     pq.add_task("B20", 200.0)
     pq.add_task("C30", 300.0)
