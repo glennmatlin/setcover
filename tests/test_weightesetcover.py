@@ -1,4 +1,4 @@
-from src.weightedsetcover import weightedsetcover
+from weightedsetcover import weightedsetcover
 
 # TODO Get test cases from existing dataset
 
