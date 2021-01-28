@@ -1,9 +1,10 @@
 #!/usr/bin/python
-from __future__ import annotations
 from src.queue import SetQueue, max_priority
 import pandas as pd
 from collections import OrderedDict
 from src.set import WeightedSet
+
+__all__ = ['WeightedSetCoverProblem']
 
 
 class WeightedSetCoverProblem:
@@ -17,7 +18,7 @@ class WeightedSetCoverProblem:
         self.weighted_sets = weighted_sets
         self.set_problem, self.subsets, self.weights = self.make_data(self)
         self.universe = set(self.set_problem.keys())
-        self.set_queue = self.prioritize(self)
+        # self.set_queue = self.prioritize(self)
         self.covered, self.cover_solution, self.weight_total = self.greedy_solver(self)
 
     @classmethod
@@ -81,7 +82,6 @@ class WeightedSetCoverProblem:
         where C is the current covered elements set.
 
         The complexity of the algorithm: O(|U| * log|S|) .
-        Finding the most cost-effective set is done by a priority queue.
         The operation has time complexity of O(log|S|).
 
 
@@ -91,6 +91,7 @@ class WeightedSetCoverProblem:
         - weights: Dict{ICDCode:Weight}
         """
         # TODO Unit test, better docstring, typing
+        # TODO Finding most cost-effective using priority queue.
 
         # if elements don't cover problem -> invalid inputs for set cover problem
         elements = set(e for s in self.subsets.keys() for e in self.subsets[s])
