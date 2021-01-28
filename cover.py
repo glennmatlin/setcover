@@ -124,7 +124,7 @@ class WeightedSetCoverProblem:
             # Update the sets that contains the new covered elements
             for set_element in self.problem_sets[set_idx]:
                 for set_id in self.universe[set_element]:
-                    if set_id != set_idx:
+                    if set_id != set_idx: # TODO Error is occuring here ... set_id is the code and set_idx is a int
                         self.problem_sets[set_id].discard(set_element)
                         # TODO FIX ^^ TypeError: list indices must be integers or slices, not str
                         if len(self.problem_sets[set_id]) == 0:
