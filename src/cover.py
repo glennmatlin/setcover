@@ -14,11 +14,11 @@ class WeightedSetCoverProblem:
     # TODO Implement a maximization constraint for coverage
     # TODO Finalize typing of inputs/outputs
 
-    def __init__(self, weighted_sets: list[tuple]):
+    def __init__(self, weighted_sets):
         self.weighted_sets = weighted_sets
         self.set_problem, self.subsets, self.weights = self.make_data(self)
         self.universe = set(self.set_problem.keys())
-        # self.set_queue = self.prioritize(self)
+        self.set_queue = self.prioritize(self)
         self.covered, self.cover_solution, self.weight_total = self.greedy_solver(self)
 
     @classmethod
