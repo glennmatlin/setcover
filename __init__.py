@@ -1,5 +1,4 @@
 import sys
-__version__ == "0.0.1"
 
 # This relies on each of the submodules having an __all__ variable.
 from .src.cover import *
@@ -13,3 +12,5 @@ if sys.platform == 'win32':  # pragma: no cover
 else:
     from .unix_events import *  # pragma: no cover
     __all__ += unix_events.__all__
+
+__version__ = '0.0.1'
