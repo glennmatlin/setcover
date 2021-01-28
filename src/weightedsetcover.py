@@ -1,18 +1,6 @@
 #!/usr/bin/python
 
-# Copyright (C) 2020 Glenn Matlin, Zhiyang Su
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-from typing import List, Set, Iterable
+from typing import List, Set, Iterable, Dict
 from .priorityqueue import PriorityQueue
 
 MAXPRIORITY = 999999
@@ -21,7 +9,30 @@ MAXPRIORITY = 999999
 # TODO Implement a maximization constraint for coverage
 # TODO Decide how inputs and outputs will be typed
 
-def weightedsetcover(sets: Iterable[Iterable[str]], weights: Iterable[int]) -> (Iterable[str], int):
+# {'code': {0: 'A0100', 1: 'A020', 2: 'A028', 3: 'A029', 4: 'A030'},
+#  'patient_ids': {0: ['ImwKm7mel9wAhH9HV3HYny1nJD6vvzGLBOy/wctFNkA='],
+#   1: ['HYEm8QH+Kf6EeAw0GKUyfsMd26EADF64+P3wM+Nw4AQ=',
+#    'GFCZeovKt3sH95oZDsHqtoEbk+1mpVSJbRdSmJXNhuo='],
+#   2: ['HYEm8QH+Kf6EeAw0GKUyfsMd26EADF64+P3wM+Nw4AQ='],
+#   3: ['HYEm8QH+Kf6EeAw0GKUyfsMd26EADF64+P3wM+Nw4AQ=',
+#    'GFCZeovKt3sH95oZDsHqtoEbk+1mpVSJbRdSmJXNhuo='],
+#   4: ['iG9yboiqP8gjbSsq/XYW6hEvZnzuUqGjlI/XjEuiqkw=',
+#    'wTZqXY2//Ja1Zj/lZTkZS+2ReS37zB/0z54t//w/2FY=']},
+#  'patient_count': {0: 161.0, 1: 782.0, 2: 56.0, 3: 310.0, 4: 36.0}}
+
+# from collections import namedtuple
+#
+# WeightedSet = namedtuple('WeightedSet', 'set_id patient_ids set_weight')
+#
+#
+# def df_to_WeightedSet(df):
+#     rows = list(df.itertuples(name='Row', index=False))
+#     weighted_sets = [
+#         WeightedSet(r.code, r.patient_ids, r.patient_count) for r in rows
+#     ]
+#     return weighted_sets
+
+def weightedsetcover(sets, weights) -> (Iterable[str], int):
     """
     Greedy algorithm implementation for a proximal solution for Weighted Set Coverage
     pick the set which is the most cost-effective: min(w[s]/|s-C|),
