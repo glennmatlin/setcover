@@ -12,7 +12,7 @@ test_weighted_sets = [
 ]
 
 
-def test_universe():
+def test_wscp():
     cover_problem = WeightedSetCoverProblem(test_weighted_sets)
     assert cover_problem
     assert cover_problem.set_problem == {
@@ -43,11 +43,6 @@ def test_universe():
         "D40": 400,
         "E50": 500,
     }
-
-
-def test_prioritize():
-    cover_problem = WeightedSetCoverProblem(test_weighted_sets)
-    assert cover_problem
     q = cover_problem.set_queue
     assert q.pop_task() == "A10"
     assert q.pop_task() == "B20"
@@ -57,6 +52,11 @@ def test_prioritize():
 
 
 # @pytest.mark.skip
-# def test_solver():
-#     cover_problem = WeightedSetCoverProblem(test_weighted_sets)
-#     assert cover_problem
+def test_solver():
+    cover_problem = WeightedSetCoverProblem(test_weighted_sets)
+    assert cover_problem
+    assert cover_problem.cover_solution
+    print(cover_problem.universe)
+    print(cover_problem.cover_solution)
+    print(cover_problem.covered)
+    print(cover_problem.weight_total)
