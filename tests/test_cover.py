@@ -1,6 +1,5 @@
 from src.cover import WeightedSetCoverProblem
 from src.set import WeightedSet
-import pytest
 
 # TODO Move mock test data to another file
 test_weighted_sets = [

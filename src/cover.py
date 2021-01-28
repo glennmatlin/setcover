@@ -98,7 +98,9 @@ class WeightedSetCoverProblem:
         # elements don't cover problem -> invalid input for set cover
 
         elements = set(e for s in self.subsets.keys() for e in self.subsets[s])
-        if elements != self.universe:  # elements don't cover universe -> invalid input for set cover
+        if (
+            elements != self.universe
+        ):  # elements don't cover universe -> invalid input for set cover
             return None
 
         # track elements of problem covered

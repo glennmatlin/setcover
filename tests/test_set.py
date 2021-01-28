@@ -1,5 +1,4 @@
 from src.set import WeightedSet
-import pytest
 
 
 def test_weighted_set():
