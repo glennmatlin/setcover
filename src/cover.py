@@ -1,9 +1,9 @@
 #!/usr/bin/python
-from typing import List, Iterable, Dict, Set
-from queue import SetQueue
+from __future__ import annotations
+from src.queue import SetQueue
 import pandas as pd
 from collections import OrderedDict
-from set import WeightedSet
+from src.set import WeightedSet
 
 MAXPRIORITY = 999999
 
@@ -13,7 +13,7 @@ class WeightedSetCoverProblem:
     # TODO Implement a maximization constraint for coverage
     # TODO Finalize typing of inputs/outputs
 
-    def __init__(self, weighted_sets: List[WeightedSet]):
+    def __init__(self, weighted_sets: list[tuple]):
         self.weighted_sets = weighted_sets
         self.universe, self.set_ids, self.problem_sets, self.weights = self.make_data(
             self
@@ -44,14 +44,14 @@ class WeightedSetCoverProblem:
         return cls(weighted_sets)
 
     @staticmethod
-    def make_data(self):# -> (OrderedDict[str:set], List[str], List[set], List[float]):
+    def make_data(self):# -> (OrderedDict[str:set], list[str], list[set], list[float]):
         """
         input: WeightedSet(id="A10", set=["Glenn"], weight=100.0)
         output: universe, ids, problem_sets, weights
             universe: OrderedDict[str:set]
-            set_ids: List[str]
-            problem_sets: List[Set[str]]
-            weights: List[float]
+            set_ids: list[str]
+            problem_sets: list[set[str]]
+            weights: list[float]
         """
         # TODO Unit test
         universe = OrderedDict()
@@ -83,9 +83,9 @@ class WeightedSetCoverProblem:
         return pq
 
     @staticmethod
-    def solver(self) -> (Iterable[str], int):
+    def solver(self) -> (list[str], int):
         """
-        Greedy algorithm implementation for a proximal solution for Weighted Set Coverage
+        Greedy algorithm implementation for a proximal solution for Weighted set Coverage
         pick the set which is the most cost-effective: min(w[s]/|s-C|),
         where C is the current covered elements set.
 
@@ -121,8 +121,8 @@ class WeightedSetCoverProblem:
             # i thought this would not count dupe elements
 
             # Update the sets that contains the new covered elements
-            for set_element in self.problem_sets[set_idx]:  # for ele in List[str]
-                for set_id in self.universe[set_element]: # for id in Set[str] <-from- Dict[str:set][ele]
+            for set_element in self.problem_sets[set_idx]:  # for ele in list[str]
+                for set_id in self.universe[set_element]: # for id in set[str] <-from- dict[str:set][ele]
                     if set_id != set_idx: # TODO Error is occuring here ... set_id is the code and set_idx is a int
                         self.problem_sets[set_id].discard(set_element)
                         # TODO FIX ^^ TypeError: list indices must be integers or slices, not str

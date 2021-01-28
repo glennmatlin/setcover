@@ -1,4 +1,4 @@
-from queue import SetQueue
+from src.queue import SetQueue
 
 
 def test_priority_queue():

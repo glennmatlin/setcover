@@ -1,5 +1,5 @@
-from cover import WeightedSetCoverProblem
-from set import WeightedSet
+from src.cover import WeightedSetCoverProblem
+from src.set import WeightedSet
 # import pytest
 
 # TODO Get test cases from existing dataset
