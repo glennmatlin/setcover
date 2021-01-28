@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from typing import List, Set, Iterable, Dict
-from .priorityqueue import PriorityQueue
+from priorityqueue import PriorityQueue
 
 MAXPRIORITY = 999999
 
@@ -32,58 +32,64 @@ MAXPRIORITY = 999999
 #     ]
 #     return weighted_sets
 
-def weightedsetcover(sets, weights) -> (Iterable[str], int):
-    """
-    Greedy algorithm implementation for a proximal solution for Weighted Set Coverage
-    pick the set which is the most cost-effective: min(w[s]/|s-C|),
-    where C is the current covered elements set.
 
-    The complexity of the algorithm: O(|U| * log|S|) .
-    Finding the most cost-effective set is done by a priority queue.
-    The operation has time complexity of O(log|S|).
+class WeightedSetCoverProblem:
+    def __init__(self):
+        pass
 
-    Input:
-    sets: a collection of sets
-    weights: corresponding weight to each set
+    @staticmethod
+    def solver(sets, weights) -> (Iterable[str], int):
+        """
+        Greedy algorithm implementation for a proximal solution for Weighted Set Coverage
+        pick the set which is the most cost-effective: min(w[s]/|s-C|),
+        where C is the current covered elements set.
 
-    Output:
-    selected: selected set ids in order (list)
-    cost: the total cost of the selected sets.
-    """
+        The complexity of the algorithm: O(|U| * log|S|) .
+        Finding the most cost-effective set is done by a priority queue.
+        The operation has time complexity of O(log|S|).
 
-    universe = {}
-    selection = list()
-    set_problem = []
-    for index, item in enumerate(sets):
-        set_problem.append(set(item))
-        for j in item:
-            if j not in universe:
-                universe[j] = set()
-            universe[j].add(index)
+        Input:
+        sets: a collection of sets
+        weights: corresponding weight to each set
 
-    pq = PriorityQueue()
-    weight = 0
-    covered = 0
-    for index, item in enumerate(set_problem):  # add all sets to the priorityqueue
-        if len(item) == 0:
-            pq.add_task(index, MAXPRIORITY)
-        else:
-            pq.add_task(index, float(weights[index]) / len(item))
-    while covered < len(universe):
-        a = pq.pop_task()  # get the most cost-effective set
-        selection.append(a)  # a: set id
-        weight += weights[a]
-        covered += len(set_problem[a])
-        # Update the sets that contains the new covered elements
-        for m in set_problem[a]:  # m: element
-            for n in universe[m]:  # n: set id
-                if n != a:
-                    set_problem[n].discard(m)
-                    if len(set_problem[n]) == 0:
-                        pq.add_task(n, MAXPRIORITY)
-                    else:
-                        pq.add_task(n, float(weights[n]) / len(set_problem[n]))
-        set_problem[a].clear()
-        pq.add_task(a, MAXPRIORITY)
+        Output:
+        selected: selected set ids in order (list)
+        cost: the total cost of the selected sets.
+        """
 
-    return selection, weight
+        universe = {}
+        selection = list()
+        set_problem = []
+        for index, item in enumerate(sets):
+            set_problem.append(set(item))
+            for j in item:
+                if j not in universe:
+                    universe[j] = set()
+                universe[j].add(index)
+
+        pq = PriorityQueue()
+        weight = 0
+        covered = 0
+        for index, item in enumerate(set_problem):  # add all sets to the priorityqueue
+            if len(item) == 0:
+                pq.add_task(index, MAXPRIORITY)
+            else:
+                pq.add_task(index, float(weights[index]) / len(item))
+        while covered < len(universe):
+            a = pq.pop_task()  # get the most cost-effective set
+            selection.append(a)  # a: set id
+            weight += weights[a]
+            covered += len(set_problem[a])
+            # Update the sets that contains the new covered elements
+            for m in set_problem[a]:  # m: element
+                for n in universe[m]:  # n: set id
+                    if n != a:
+                        set_problem[n].discard(m)
+                        if len(set_problem[n]) == 0:
+                            pq.add_task(n, MAXPRIORITY)
+                        else:
+                            pq.add_task(n, float(weights[n]) / len(set_problem[n]))
+            set_problem[a].clear()
+            pq.add_task(a, MAXPRIORITY)
+
+        return selection, weight

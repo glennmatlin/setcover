@@ -1,4 +1,4 @@
-from weightedsetcover import weightedsetcover
+from weightedsetcover import WeightedSetCoverProblem
 
 # TODO Get test cases from existing dataset
 
@@ -36,5 +36,5 @@ weights = [1, 2, 3, 4, 3, 5]
 
 
 def test_weightedsetcover():
-    selected, cost = weightedsetcover(sets, weights)
+    selected, cost = WeightedSetCoverProblem.solver(sets, weights)
     assert (selected, cost) == ([0, 4, 1, 3], 10)
