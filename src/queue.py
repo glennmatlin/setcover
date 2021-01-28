@@ -3,6 +3,8 @@
 import itertools
 from heapq import heappush, heappop
 
+max_priority = 999999
+
 
 class SetQueue:
     def __init__(self):
