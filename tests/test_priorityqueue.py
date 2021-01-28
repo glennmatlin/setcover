@@ -1,4 +1,4 @@
-from priorityqueue import PriorityQueue
+from queue import PriorityQueue
 
 
 def test_priorityqueue():

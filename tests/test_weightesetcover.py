@@ -1,4 +1,4 @@
-from weightedsetcover import WeightedSetCoverProblem, WeightedSet
+from cover import WeightedSetCoverProblem, WeightedSet
 
 # TODO Get test cases from existing dataset
 # TODO sets should be ICD[Patient,Patient] since we want to find the overlapping ICD codes

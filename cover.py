@@ -1,34 +1,19 @@
 #!/usr/bin/python
-
-
 from collections import namedtuple
-from typing import List, Set, Iterable, Dict
-from priorityqueue import PriorityQueue
+from typing import List, Iterable
+from .queue import PriorityQueue
 import pandas as pd
 
 MAXPRIORITY = 999999
-
-# TODO Function argument for limiting sets selected
-# TODO Implement a maximization constraint for coverage
-# TODO Decide how inputs and outputs will be typed
-
-# df.to_dict()
-# {'code': {0: 'A0100', 1: 'A020', 2: 'A028', 3: 'A029', 4: 'A030'},
-#  'patient_ids': {0: ['ImwKm7mel9wAhH9HV3HYny1nJD6vvzGLBOy/wctFNkA='],
-#   1: ['HYEm8QH+Kf6EeAw0GKUyfsMd26EADF64+P3wM+Nw4AQ=',
-#    'GFCZeovKt3sH95oZDsHqtoEbk+1mpVSJbRdSmJXNhuo='],
-#   2: ['HYEm8QH+Kf6EeAw0GKUyfsMd26EADF64+P3wM+Nw4AQ='],
-#   3: ['HYEm8QH+Kf6EeAw0GKUyfsMd26EADF64+P3wM+Nw4AQ=',
-#    'GFCZeovKt3sH95oZDsHqtoEbk+1mpVSJbRdSmJXNhuo='],
-#   4: ['iG9yboiqP8gjbSsq/XYW6hEvZnzuUqGjlI/XjEuiqkw=',
-#    'wTZqXY2//Ja1Zj/lZTkZS+2ReS37zB/0z54t//w/2FY=']},
-#  'patient_count': {0: 161.0, 1: 782.0, 2: 56.0, 3: 310.0, 4: 36.0}}
-
 
 WeightedSet = namedtuple("WeightedSet", "id set set_weight")
 
 
 class WeightedSetCoverProblem:
+    # TODO Function argument for limiting sets selected
+    # TODO Implement a maximization constraint for coverage
+    # TODO Finalize typing of inputs/outputs
+
     def __init__(self, sets: List[WeightedSet]):
         self.sets = sets
         self.universe = None
@@ -43,18 +28,19 @@ class WeightedSetCoverProblem:
         # TODO Fn unit test
         rows = list(df.itertuples(name="Row", index=False))
         weighted_sets = [WeightedSet(r[0], r[1], r[2]) for r in rows]
-        return weighted_sets
+        return cls(weighted_sets)
 
-    def make_universe(self):
-        universe = {}
-        selection = list()
-        set_problem = []
-        for index, item in enumerate(sets):
-            set_problem.append(set(item))
-            for j in item:
-                if j not in universe:
-                    universe[j] = set()
-                universe[j].add(index)
+    # @staticmethod
+    # def make_universe(self):
+    #     universe = {}
+    #     selection = list()
+    #     set_problem = []
+    #     for index, item in enumerate(sets):
+    #         set_problem.append(set(item))
+    #         for j in item:
+    #             if j not in universe:
+    #                 universe[j] = set()
+    #             universe[j].add(index)
 
     @staticmethod
     def solver(sets: List[List[int]], weights: List[float]) -> (Iterable[str], int):
