@@ -2,41 +2,46 @@ from src.cover import WeightedSetCoverProblem
 from src.set import WeightedSet
 import pytest
 
-# TODO Get test cases from existing dataset
-# TODO sets should be ICD[Patient,Patient] since we want to find the overlapping ICD codes
-# TODO create a named tuple object to contain the ICD/Patients/Weight
+# TODO Move mock test data to another file
 test_weighted_sets = [
-    WeightedSet(id="A10", set=["Glenn"], weight=100.0),
-    WeightedSet(id="B20", set=["Jeremy", "Ben"], weight=200.0),
-    WeightedSet(id="C30", set=["Jeremy"], weight=300.0),
-    WeightedSet(id="D40", set=["Jeremy", "Ben"], weight=400.0),
-    WeightedSet(id="E50", set=["Justin", "Vijay"], weight=500.0),
+    WeightedSet(set_id="A10", subset=["Glenn"], weight=100.0),
+    WeightedSet(set_id="B20", subset=["Jeremy", "Ben"], weight=200.0),
+    WeightedSet(set_id="C30", subset=["Jeremy"], weight=300.0),
+    WeightedSet(set_id="D40", subset=["Jeremy", "Ben"], weight=400.0),
+    WeightedSet(set_id="E50", subset=["Justin", "Vijay"], weight=500.0),
 ]
 
 
 def test_universe():
     cover_problem = WeightedSetCoverProblem(test_weighted_sets)
     assert cover_problem
-    assert cover_problem.problem['ele_key'] == {
+    assert cover_problem.universe == {
         "Glenn": {"A10"},
         "Jeremy": {"B20", "D40", "C30"},
         "Ben": {"B20", "D40"},
         "Justin": {"E50"},
         "Vijay": {"E50"},
     }
-    assert set(cover_problem.problem['ele_key'].keys()) == {
+    assert set(cover_problem.universe.keys()) == {
         "Glenn",
         "Jeremy",
         "Ben",
         "Justin",
-        "Vijay"
+        "Vijay",
     }
-    assert cover_problem.problem['id_key'] == {
-        "A10": {'set':{"Glenn"}, 'weight': 100},
-        "B20": {'set':{"Jeremy", "Ben"}, 'weight': 200},
-        "C30": {'set':{"Jeremy"}, 'weight': 300},
-        "D40": {'set':{"Jeremy", "Ben"}, 'weight': 400},
-        "E50": {'set':{"Justin", "Vijay"}, 'weight': 500}
+    assert cover_problem.subsets == {
+        "A10": {"Glenn"},
+        "B20": {"Jeremy", "Ben"},
+        "C30": {"Jeremy"},
+        "D40": {"Jeremy", "Ben"},
+        "E50": {"Justin", "Vijay"},
+    }
+    assert cover_problem.weights == {
+        "A10": 100,
+        "B20": 200,
+        "C30": 300,
+        "D40": 400,
+        "E50": 500,
     }
 
 
@@ -52,7 +57,6 @@ def test_prioritize():
 
 
 # @pytest.mark.skip
-def test_solver():
-    cover_problem = WeightedSetCoverProblem(test_weighted_sets)
-    assert cover_problem
-    # assert (selected, cost) == ([0, 4, 1, 3], 10.0)
+# def test_solver():
+#     cover_problem = WeightedSetCoverProblem(test_weighted_sets)
+#     assert cover_problem

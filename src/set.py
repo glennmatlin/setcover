@@ -1,3 +1,3 @@
 from collections import namedtuple
 
-WeightedSet = namedtuple("WeightedSet", "id set weight")
+WeightedSet = namedtuple("WeightedSet", ["set_id", "subset", "weight"])
