@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
+
+from collections import namedtuple
 from typing import List, Set, Iterable, Dict
 from priorityqueue import PriorityQueue
+import pandas as pd
 
 MAXPRIORITY = 999999
 
@@ -9,6 +12,7 @@ MAXPRIORITY = 999999
 # TODO Implement a maximization constraint for coverage
 # TODO Decide how inputs and outputs will be typed
 
+# df.to_dict()
 # {'code': {0: 'A0100', 1: 'A020', 2: 'A028', 3: 'A029', 4: 'A030'},
 #  'patient_ids': {0: ['ImwKm7mel9wAhH9HV3HYny1nJD6vvzGLBOy/wctFNkA='],
 #   1: ['HYEm8QH+Kf6EeAw0GKUyfsMd26EADF64+P3wM+Nw4AQ=',
@@ -20,25 +24,40 @@ MAXPRIORITY = 999999
 #    'wTZqXY2//Ja1Zj/lZTkZS+2ReS37zB/0z54t//w/2FY=']},
 #  'patient_count': {0: 161.0, 1: 782.0, 2: 56.0, 3: 310.0, 4: 36.0}}
 
-# from collections import namedtuple
-#
-# WeightedSet = namedtuple('WeightedSet', 'set_id patient_ids set_weight')
-#
-#
-# def df_to_WeightedSet(df):
-#     rows = list(df.itertuples(name='Row', index=False))
-#     weighted_sets = [
-#         WeightedSet(r.code, r.patient_ids, r.patient_count) for r in rows
-#     ]
-#     return weighted_sets
+
+WeightedSet = namedtuple("WeightedSet", "id set set_weight")
 
 
 class WeightedSetCoverProblem:
-    def __init__(self):
-        pass
+    def __init__(self, sets: List[WeightedSet]):
+        self.sets = sets
+        self.universe = None
+        self.cover_solution = None
+        self.total_weight = None
+
+    @classmethod
+    def from_dataframe(cls, df: pd.DataFrame) -> List[WeightedSet]:
+        """
+        Convert pandas DataFrame to into a list of named tuples
+        """
+        # TODO Fn unit test
+        rows = list(df.itertuples(name="Row", index=False))
+        weighted_sets = [WeightedSet(r[0], r[1], r[2]) for r in rows]
+        return weighted_sets
+
+    def make_universe(self):
+        universe = {}
+        selection = list()
+        set_problem = []
+        for index, item in enumerate(sets):
+            set_problem.append(set(item))
+            for j in item:
+                if j not in universe:
+                    universe[j] = set()
+                universe[j].add(index)
 
     @staticmethod
-    def solver(sets, weights) -> (Iterable[str], int):
+    def solver(sets: List[List[int]], weights: List[float]) -> (Iterable[str], int):
         """
         Greedy algorithm implementation for a proximal solution for Weighted Set Coverage
         pick the set which is the most cost-effective: min(w[s]/|s-C|),
