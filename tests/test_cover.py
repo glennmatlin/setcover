@@ -15,14 +15,14 @@ test_weighted_sets = [
 def test_universe():
     cover_problem = WeightedSetCoverProblem(test_weighted_sets)
     assert cover_problem
-    assert cover_problem.universe == {
+    assert cover_problem.set_problem == {
         "Glenn": {"A10"},
         "Jeremy": {"B20", "D40", "C30"},
         "Ben": {"B20", "D40"},
         "Justin": {"E50"},
         "Vijay": {"E50"},
     }
-    assert set(cover_problem.universe.keys()) == {
+    assert set(cover_problem.set_problem.keys()) == {
         "Glenn",
         "Jeremy",
         "Ben",
