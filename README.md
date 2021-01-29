@@ -7,11 +7,12 @@ Solution for the "Weighted Set Cover Problem" using a greedy algorithm which app
 Algorithm picks set with the lowest ratio of set weight to the number of new elements covered.
 
 ```
-Universe U of n elements Collection of subsets of U:
+Universe U of n elements
 
-    S = S1,S2...,Sm Where every substet Si has an associated cost.
+Subsets S of U:
+    S = (S1, S2, ..., Sm) Where every subset Si has an associated cost.
 
-Find a minimum cost subcollection of S that covers all elements of U
+Find a minimum weight subcollection of S that covers all elements of U
 
 Example:
 
@@ -26,6 +27,7 @@ Example:
     S3, Cost(S3) = ({1,4,3,2}, 3)
 
 Output:
+
     SetCover(U,S) == ({S2, S3}, 13)
 ```
 
