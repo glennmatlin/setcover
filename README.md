@@ -15,16 +15,18 @@ Find a minimum cost subcollection of S that covers all elements of U
 
 Example:
 
-    U = {1,2,3,4,5} S = {S1,S2,S3}
+    U = {1,2,3,4,5}
+    
+    S = {S1,S2,S3}
 
-    S1, Cost(S1) = {4,1,3}, 5
+    S1, Cost(S1) = ({4,1,3}, 5)
 
-    S2, Cost(S2) = {2,5}, 10
+    S2, Cost(S2) = ({2,5}, 10)
 
-    S3, Cost(S3) = {1,4,3,2}, 3
+    S3, Cost(S3) = ({1,4,3,2}, 3)
 
 Output:
-    Set cover = {S2, S3} Min Cost = 13
+    SetCover(U,S) == ({S2, S3}, 13)
 ```
 
 Time complexity of algorithm in BigO is `O(|U| * log|S|)`.
