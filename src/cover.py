@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from .queue import SetQueue, max_priority
 import pandas as pd
 from collections import OrderedDict
 from .set import WeightedSet
@@ -17,7 +16,6 @@ class WeightedSetCoverProblem:
         self.weighted_sets = weighted_sets
         self.set_problem, self.subsets, self.weights = self.make_data(self)
         self.universe = set(self.set_problem.keys())
-        self.set_queue = self.prioritize(self)
         self.covered, self.cover_solution, self.weight_total = self.greedy_solver(self)
 
     @classmethod
@@ -62,18 +60,6 @@ class WeightedSetCoverProblem:
         return set_problem, subsets, weights
 
     @staticmethod
-    def prioritize(self):
-        # TODO Unit test, better docstring
-        set_queue = SetQueue()
-        for weighted_set in self.weighted_sets:  # add all sets to the priority queue
-            subset_id, subset, weight = weighted_set
-            if len(subset) == 0:
-                set_queue.add_task(subset_id, max_priority)
-            else:
-                set_queue.add_task(subset_id, float(weight) / len(subset))
-        return set_queue
-
-    @staticmethod
     def greedy_solver(self):
         """
         Greedy algorithm implementation for a proximal solution for Weighted set Coverage
@@ -83,11 +69,10 @@ class WeightedSetCoverProblem:
         The complexity of the algorithm: O(|U| * log|S|) .
         The operation has time complexity of O(log|S|).
 
-
-        NEEDED:
-        - set_problem: List[PatientIDs]
-        - subsets: Dict{ICDCode:[PatientIDs]}
-        - weights: Dict{ICDCode:Weight}
+        Inputs:
+        - set_problem: list[list[str]]
+        - subsets: dict{str:list[str]}
+        - weights: dict{str:float}
         """
         # TODO Unit test, better docstring, typing
         # TODO Finding most cost-effective using priority queue.
