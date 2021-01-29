@@ -1,3 +1,4 @@
 # TODO Pin packages
 pytest
 pandas
+setuptools
