@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-__all__ = "SetQueue"
-
 import itertools
 from heapq import heappush, heappop
 

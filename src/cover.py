@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-__all__ = ("WeightedSetCoverProblem")
-
 from src.queue import SetQueue, max_priority
 import pandas as pd
 from collections import OrderedDict

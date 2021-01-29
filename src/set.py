@@ -1,9 +1,5 @@
 #!/usr/bin/python
 
-
-__all__ = ("WeightedSet")
-
-
 from collections import namedtuple
 
 
