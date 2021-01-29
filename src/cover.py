@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-from src.queue import SetQueue, max_priority
+from .queue import SetQueue, max_priority
 import pandas as pd
 from collections import OrderedDict
-from src.set import WeightedSet
+from .set import WeightedSet
 
 
 class WeightedSetCoverProblem:
