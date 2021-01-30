@@ -1,5 +1,5 @@
-from src.cover import WeightedSetCoverProblem
-from src.set import WeightedSet
+from weightedsetcover.cover import WeightedSetCoverProblem
+from weightedsetcover.set import WeightedSet
 
 # TODO Move mock test data to another file
 test_weighted_sets = [
@@ -12,6 +12,7 @@ test_weighted_sets = [
 
 
 def test_wscp():
+    # TODO make this a class level test and break into functions
     cover_problem = WeightedSetCoverProblem(test_weighted_sets)
     assert cover_problem
     assert cover_problem.set_problem == {
@@ -42,18 +43,6 @@ def test_wscp():
         "D40": 400,
         "E50": 500,
     }
-    q = cover_problem.set_queue
-    assert q.pop_task() == "A10"
-    assert q.pop_task() == "B20"
-    assert q.pop_task() == "D40"
-    assert q.pop_task() == "E50"
-    assert q.pop_task() == "C30"
-
-
-# @pytest.mark.skip
-def test_solver():
-    cover_problem = WeightedSetCoverProblem(test_weighted_sets)
-    assert cover_problem
     assert cover_problem.cover_solution
     print(cover_problem.universe)
     print(cover_problem.cover_solution)

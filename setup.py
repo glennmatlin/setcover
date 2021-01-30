@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="WeightedSetCover",
-    version="0.0.2",
+    name="SetCoverage",
+    version="0.1.0",
     packages=find_packages(),
-    description='Solution for the Weighted Set Coverage Problem',
-    author='Glenn Matlin',
-    author_email='glenn.matlin@gmail.com',
+    description="Set Coverage",
+    author="Glenn Matlin",
+    author_email="glenn.matlin@gmail.com",
 )
