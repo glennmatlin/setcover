@@ -7,20 +7,28 @@ Solution for the "Weighted Set Cover Problem" using a greedy algorithm which app
 Algorithm picks set with the lowest ratio of set weight to the number of new elements covered.
 
 ```
-Universe U of n elements Collection of subsets of U:
+Universe U of n elements
 
-    S = S1,S2...,Sm Where every substet Si has an associated cost.
+Subsets S of U:
+    S = (S1, S2, ..., Sm) Where every subset Si has an associated cost.
 
-Find a minimum cost subcollection of S that covers all elements of U
+Find a minimum weight subcollection of S that covers all elements of U
 
 Example:
 
-    U = {1,2,3,4,5} S = {S1,S2,S3}
+    U = {1,2,3,4,5}
+    
+    S = {S1,S2,S3}
 
-    S1 = {4,1,3}, Cost(S1) = 5 S2 = {2,5}, Cost(S2) = 10 S3 = {1,4,3,2}, Cost(S3) = 3
+    S1, Cost(S1) = ({4,1,3}, 5)
 
-    Output:
-        Set cover = {S2, S3} Min Cost = 13
+    S2, Cost(S2) = ({2,5}, 10)
+
+    S3, Cost(S3) = ({1,4,3,2}, 3)
+
+Output:
+
+    SetCover(U,S) == ({S2, S3}, 13)
 ```
 
 Time complexity of algorithm in BigO is `O(|U| * log|S|)`.
