@@ -4,7 +4,8 @@ import pandas as pd
 from collections import OrderedDict
 
 from setcoverage.set import ExclusionSet
-
+import logging
+log = logging.getLogger(__name__)
 
 class ExclusionSetCoverProblem:
     # TODO testing, docstring, typing
@@ -14,8 +15,7 @@ class ExclusionSetCoverProblem:
     # TODO Finalize typing of inputs/outputs
 
     def __init__(self, exclusion_sets):
-        self.exclusion_sets = exclusion_sets
-        self.universe, self.subsets_include, self.subsets_exclude = self.make_data(self)
+        self.universe, self.subsets_include, self.subsets_exclude = self.make_data(exclusion_sets)
         (
             self.cover_sets,
             self.include_covered,
@@ -43,8 +43,7 @@ class ExclusionSetCoverProblem:
         exclusion_sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
         return cls(exclusion_sets)
 
-    @staticmethod
-    def make_data(self):
+    def make_data(self, exclusion_sets):
         """
         input: ExclusionSet(id=str, include_set=set[str], exclude_set=set[str])
         """
@@ -52,13 +51,11 @@ class ExclusionSetCoverProblem:
         universe = set()
         subsets_include = OrderedDict()
         subsets_exclude = OrderedDict()
-        for exclusion_set in self.exclusion_sets:
+        for exclusion_set in exclusion_sets:
             subset_id, subset_include, subset_exclude = exclusion_set
             subsets_include[subset_id] = set(subset_include)
             subsets_exclude[subset_id] = set(subset_exclude)
-            for subset_element in subset_include:
-                if subset_element not in universe:
-                    universe |= set(subset_element)
+            universe |= set(subset_include)
         return universe, subsets_include, subsets_exclude
 
     @staticmethod
@@ -73,12 +70,14 @@ class ExclusionSetCoverProblem:
         # TODO Finding most cost-effective using priority queue.
 
         # if elements don't cover problem -> invalid inputs for set cover problem
+        log.info(self.universe)
+        log.info(self.subsets_include.items())
         include_elements = set(
             e for s in self.subsets_include.keys() for e in self.subsets_include[s]
         )
         if include_elements != self.universe:
-            print(include_elements)
-            print(self.universe)
+            log.error(include_elements)
+            log.error(self.universe)
             raise Exception("universe is incomplete")
 
         # track elements of problem covered

@@ -33,6 +33,10 @@ Output:
 
 Time complexity of algorithm in BigO is `O(|U| * log|S|)`.
 
+## Testing
+
+Use `make`
+
 ## TODOs:
 - Feature: Check a second set for elements to be covered or avoided
 - Feature: Priority queue 

@@ -1,5 +1,10 @@
 from setcoverage.exclusion import ExclusionSetCoverProblem
+
 from tests.test_data import exclusion_sets
+import logging
+
+log = logging.getLogger(__name__)
+
 
 class TestExclusion:
     @staticmethod
@@ -13,11 +18,5 @@ class TestExclusion:
             "Victor",
             "Vijay",
         }
-        # assert exclusion_problem.include_covered
-        # assert exclusion_problem.exclude_covered
-        # print(exclusion_problem.include_covered)
-        # print(exclusion_problem.exclude_covered)
-
-    @staticmethod
-    def test_make_data():
-        assert False
+        # log.info(exclusion_problem.subsets_include)
+        # log.info(exclusion_problem.subsets_exclude)

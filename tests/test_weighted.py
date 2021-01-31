@@ -3,6 +3,7 @@ from tests.test_data import weighted_sets
 
 
 class TestWeighted:
+    @staticmethod
     def test_weighted():
         cover_problem = WeightedSetCoverProblem(weighted_sets)
         assert cover_problem
@@ -35,4 +36,3 @@ class TestWeighted:
             "E50": 500,
         }
         assert cover_problem.cover_solution
-
