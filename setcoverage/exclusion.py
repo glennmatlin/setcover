@@ -3,11 +3,10 @@
 import pandas as pd
 from collections import OrderedDict
 
-import tests.test_data
 from setcoverage.set import ExclusionSet
 
 
-class WeightedSetCoverProblem:
+class ExclusionSetCoverProblem:
     # TODO testing, docstring, typing
     # TODO rename 'subsets_include' to 'set_cover'
     # TODO Function argument for limiting sets selected
@@ -47,18 +46,17 @@ class WeightedSetCoverProblem:
     @staticmethod
     def make_data(self):
         """
-        input: ExclusionSet(id="A10", set=["Glenn"], weight=100.0)
-        output: (Dict[Dict[str:set[str]]], list[str], list[set], list[float])
+        input: ExclusionSet(id=str, include_set=set[str], exclude_set=set[str])
         """
         # TODO Unit test, better docstring
         universe = set()
-        subsets_exclude = OrderedDict()
         subsets_include = OrderedDict()
-        for exclusion_set in tests.test_data.exclusion_sets:
+        subsets_exclude = OrderedDict()
+        for exclusion_set in self.exclusion_sets:
             subset_id, subset_include, subset_exclude = exclusion_set
-            subset_include[subset_id] = set(subset_include)
+            subsets_include[subset_id] = set(subset_include)
             subsets_exclude[subset_id] = set(subset_exclude)
-            universe |= set(subset_id)
+            universe |= {subset_id}
         return universe, subsets_include, subsets_exclude
 
     @staticmethod
@@ -80,7 +78,7 @@ class WeightedSetCoverProblem:
             e for s in self.subsets_exclude.keys() for e in self.subsets_exclude[s]
         )
         if include_elements != self.universe | exclude_elements != self.universe:
-            return None
+            raise Exception('universe is incomplete')
 
         # track elements of problem covered
         include_covered = set()

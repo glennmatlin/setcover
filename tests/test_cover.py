@@ -1,4 +1,5 @@
 from setcoverage.weighted import WeightedSetCoverProblem
+from setcoverage.exclusion import ExclusionSetCoverProblem
 from tests.test_data import weighted_sets, exclusion_sets
 
 
@@ -41,5 +42,13 @@ def test_weighted():
     print(cover_problem.weight_total)
 
 
-def test_exclusion():
-    assert exclusion_sets
+class ExclusionTest:
+    def __init__(self):
+        self.exclusion_problem = ExclusionSetCoverProblem(exclusion_sets)
+
+    @staticmethod
+    def test_exclusion(self):
+        assert self.exclusion_problem
+        assert self.exclusion_problem.universe
+        assert self.exclusion_problem.include_covered
+        assert self.exclusion_problem.exclude_covered
