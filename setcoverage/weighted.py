@@ -2,6 +2,8 @@
 
 import pandas as pd
 from collections import OrderedDict
+
+import tests.test_data
 from .set import WeightedSet
 
 
@@ -48,7 +50,7 @@ class WeightedSetCoverProblem:
         set_problem = OrderedDict()
         subsets = OrderedDict()
         weights = OrderedDict()
-        for weighted_set in self.weighted_sets:
+        for weighted_set in tests.test_data.weighted_sets:
             subset_id, subset, weight = weighted_set
             subsets[subset_id] = set(subset)
             weights[subset_id] = weight

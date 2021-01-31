@@ -2,6 +2,8 @@
 
 import pandas as pd
 from collections import OrderedDict
+
+import tests.test_data
 from setcoverage.set import ExclusionSet
 
 
@@ -52,7 +54,7 @@ class WeightedSetCoverProblem:
         universe = set()
         subsets_exclude = OrderedDict()
         subsets_include = OrderedDict()
-        for exclusion_set in self.exclusion_sets:
+        for exclusion_set in tests.test_data.exclusion_sets:
             subset_id, subset_include, subset_exclude = exclusion_set
             subset_include[subset_id] = set(subset_include)
             subsets_exclude[subset_id] = set(subset_exclude)
