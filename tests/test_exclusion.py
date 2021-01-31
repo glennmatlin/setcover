@@ -18,5 +18,5 @@ class TestExclusion:
             "Victor",
             "Vijay",
         }
-        # log.info(exclusion_problem.subsets_include)
-        # log.info(exclusion_problem.subsets_exclude)
+        log.info(exclusion_problem.subsets_include)
+        log.info(exclusion_problem.subsets_exclude)
