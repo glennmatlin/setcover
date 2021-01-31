@@ -1,4 +1,4 @@
-from setcoverage.cover import WeightedSetCoverProblem
+from setcoverage.weighted import WeightedSetCoverProblem
 from setcoverage.set import WeightedSet, ExclusionSet
 
 # TODO Move mock test data to another file

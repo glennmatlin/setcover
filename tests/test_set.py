@@ -1,4 +1,4 @@
-from weightedsetcover.set import WeightedSet
+from setcoverage.set import WeightedSet
 
 
 def test_weighted_set():
