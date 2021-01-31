@@ -56,16 +56,18 @@ class ExclusionSetCoverProblem:
             subset_id, subset_include, subset_exclude = exclusion_set
             subsets_include[subset_id] = set(subset_include)
             subsets_exclude[subset_id] = set(subset_exclude)
-            universe |= {subset_id}
+            for subset_element in subset_include:
+                if subset_element not in universe:
+                    universe |= set(subset_element)
         return universe, subsets_include, subsets_exclude
 
     @staticmethod
     def greedy_solver(self):
         """
         Inputs:
-        - set_problem: list[list[str]]
-        - subsets_include: dict{str:list[str]}
-        - subsets_exclude: dict{str:list[str]}
+        - universe: set[str]
+        - subsets_include: OrderedDict{str:set[str]}
+        - subsets_exclude: OrderedDict{str:set[str]}
         """
         # TODO Unit test, better docstring, typing
         # TODO Finding most cost-effective using priority queue.
@@ -74,11 +76,10 @@ class ExclusionSetCoverProblem:
         include_elements = set(
             e for s in self.subsets_include.keys() for e in self.subsets_include[s]
         )
-        exclude_elements = set(
-            e for s in self.subsets_exclude.keys() for e in self.subsets_exclude[s]
-        )
-        if include_elements != self.universe | exclude_elements != self.universe:
-            raise Exception('universe is incomplete')
+        if include_elements != self.universe:
+            print(include_elements)
+            print(self.universe)
+            raise Exception("universe is incomplete")
 
         # track elements of problem covered
         include_covered = set()
