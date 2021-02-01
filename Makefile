@@ -7,3 +7,4 @@ install:
 
 test:
 	PYTHONPATH=. python3 -m pytest tests
+	#SPARK_HOME /opt/spark

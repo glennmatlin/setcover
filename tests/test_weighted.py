@@ -1,4 +1,4 @@
-from setcoverage.weighted import WeightedSetCoverProblem
+from src.weighted import WeightedSetCoverProblem
 from tests.test_data import weighted_sets
 
 
@@ -11,8 +11,8 @@ class TestWeighted:
             "Glenn": {"A10", "D40", "E50"},
             "Jeremy W": {"B20", "C30"},
             "Ben": {"B20", "D40"},
-            "Victor": {"E50","C30"},
-            "Vijay": {"A10","E50"},
+            "Victor": {"E50", "C30"},
+            "Vijay": {"A10", "E50"},
         }
         assert set(cover_problem.set_problem.keys()) == {
             "Glenn",

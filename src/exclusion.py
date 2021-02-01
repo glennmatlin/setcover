@@ -3,7 +3,7 @@
 import pandas as pd
 from collections import OrderedDict
 
-from setcoverage.set import ExclusionSet
+from src.set import ExclusionSet
 import logging
 
 log = logging.getLogger(__name__)
