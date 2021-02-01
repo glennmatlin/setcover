@@ -6,4 +6,4 @@ install:
 	pip install --upgrade .
 
 test:
-	PYTHONPATH=. pytest tests
+	PYTHONPATH=. python3 -m pytest tests
