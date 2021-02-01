@@ -8,16 +8,16 @@ from setcoverage.set import WeightedSet, ExclusionSet
 # "Doug", "Daniel", "Eric","Earnest", "Ethan", "Haroon", 'Justin', "Jean", "Jeremy K"]
 
 weighted_sets = [
-    WeightedSet(set_id="A10", subset=["Glenn"], weight=100.0),
+    WeightedSet(set_id="A10", subset=["Glenn", "Vijay"], weight=100.0),
     WeightedSet(set_id="B20", subset=["Jeremy W", "Ben"], weight=200.0),
-    WeightedSet(set_id="C30", subset=["Jeremy W"], weight=300.0),
-    WeightedSet(set_id="D40", subset=["Jeremy W", "Glenn", "Ben"], weight=400.0),
-    WeightedSet(set_id="E50", subset=["Victor", "Vijay"], weight=500.0),
+    WeightedSet(set_id="C30", subset=["Jeremy W", "Victor"], weight=300.0),
+    WeightedSet(set_id="D40", subset=["Glenn", "Ben"], weight=400.0),
+    WeightedSet(set_id="E50", subset=["Victor", "Glenn", "Vijay"], weight=500.0),
 ]
 exclusion_sets = [
     ExclusionSet(
         set_id="A10",
-        subset_include=["Glenn"],
+        subset_include=["Glenn", "Vijay"],
         subset_exclude=[
             "Jean",
             "Daniel",
@@ -55,7 +55,7 @@ exclusion_sets = [
     ),
     ExclusionSet(
         set_id="C30",
-        subset_include=["Jeremy W"],
+        subset_include=["Jeremy W", "Victor"],
         subset_exclude=[
             "Andrey",
             "Haroon",
@@ -74,7 +74,7 @@ exclusion_sets = [
     ),
     ExclusionSet(
         set_id="D40",
-        subset_include=["Jeremy W", "Glenn", "Ben"],
+        subset_include=["Glenn", "Ben"],
         subset_exclude=[
             "Andrea",
             "Andrey",
@@ -96,7 +96,7 @@ exclusion_sets = [
     ),
     ExclusionSet(
         set_id="E50",
-        subset_include=["Victor", "Vijay"],
+        subset_include=["Victor", "Glenn", "Vijay"],
         subset_exclude=[
             "Jeremy K",
             "Kamalesh",

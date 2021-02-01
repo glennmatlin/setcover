@@ -8,11 +8,11 @@ class TestWeighted:
         cover_problem = WeightedSetCoverProblem(weighted_sets)
         assert cover_problem
         assert cover_problem.set_problem == {
-            "Glenn": {"A10", "D40"},
-            "Jeremy W": {"B20", "D40", "C30"},
+            "Glenn": {"A10", "D40", "E50"},
+            "Jeremy W": {"B20", "C30"},
             "Ben": {"B20", "D40"},
-            "Victor": {"E50"},
-            "Vijay": {"E50"},
+            "Victor": {"E50","C30"},
+            "Vijay": {"A10","E50"},
         }
         assert set(cover_problem.set_problem.keys()) == {
             "Glenn",
@@ -22,11 +22,11 @@ class TestWeighted:
             "Vijay",
         }
         assert cover_problem.subsets == {
-            "A10": {"Glenn"},
+            "A10": {"Glenn", "Vijay"},
             "B20": {"Jeremy W", "Ben"},
-            "C30": {"Jeremy W"},
-            "D40": {"Jeremy W", "Ben", "Glenn"},
-            "E50": {"Victor", "Vijay"},
+            "C30": {"Jeremy W", "Victor"},
+            "D40": {"Ben", "Glenn"},
+            "E50": {"Victor", "Glenn", "Vijay"},
         }
         assert cover_problem.weights == {
             "A10": 100,

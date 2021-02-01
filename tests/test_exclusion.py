@@ -11,12 +11,7 @@ class TestExclusion:
     def test_init():
         exclusion_problem = ExclusionSetCoverProblem(exclusion_sets)
         assert exclusion_problem
-        assert exclusion_problem.universe == {
-            "Glenn",
-            "Jeremy W",
-            "Ben",
-            "Victor",
-            "Vijay",
-        }
-        log.info(exclusion_problem.subsets_include)
-        log.info(exclusion_problem.subsets_exclude)
+        log.info("universe: {}".format(exclusion_problem.universe))
+        log.info("cover_solution: {}".format(exclusion_problem.cover_solution))
+        log.info("subsets_include: {}".format(exclusion_problem.subsets_include))
+        log.info("subsets_exclude: {}".format(exclusion_problem.subsets_exclude))

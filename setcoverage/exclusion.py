@@ -5,24 +5,26 @@ from collections import OrderedDict
 
 from setcoverage.set import ExclusionSet
 import logging
+
 log = logging.getLogger(__name__)
+
 
 class ExclusionSetCoverProblem:
     # TODO testing, docstring, typing
-    # TODO rename 'subsets_include' to 'set_cover'
     # TODO Function argument for limiting sets selected
     # TODO Implement a maximization constraint for coverage
-    # TODO Finalize typing of inputs/outputs
+    # TODO: Lazy import functionality that checks for datatype
 
     def __init__(self, exclusion_sets):
-        self.universe, self.subsets_include, self.subsets_exclude = self.make_data(exclusion_sets)
+        self.universe, self.subsets_include, self.subsets_exclude = self.make_data(
+            exclusion_sets
+        )
         (
-            self.cover_sets,
+            self.cover_solution,
             self.include_covered,
             self.exclude_covered,
         ) = self.greedy_solver(self)
 
-    # TODO: Lazy import functionality that checks for datatype
     @classmethod
     def from_lists(cls, ids, sets_include, sets_exclude):
         """
@@ -83,7 +85,7 @@ class ExclusionSetCoverProblem:
         # track elements of problem covered
         include_covered = set()
         exclude_covered = set()
-        cover_sets = []
+        cover_solution = []
 
         while include_covered != self.universe:
             min_cost_elem_ratio = float("inf")
@@ -101,7 +103,7 @@ class ExclusionSetCoverProblem:
                     if cost_elem_ratio < min_cost_elem_ratio:
                         min_cost_elem_ratio = cost_elem_ratio
                         min_set = set_id
-            cover_sets.append(min_set)  # Track sets used
+            cover_solution.append(min_set)  # Track sets used
             include_covered |= self.subsets_include[min_set]  # Bitwise union of sets
             exclude_covered |= self.subsets_exclude[min_set]
-        return cover_sets, include_covered, exclude_covered
+        return cover_solution, include_covered, exclude_covered
