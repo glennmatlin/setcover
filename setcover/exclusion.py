@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from tqdm import tqdm
 import pandas as pd
 from collections import OrderedDict
 
@@ -91,8 +92,9 @@ class ExclusionSetCoverProblem:
             min_cost_elem_ratio = float("inf")
             min_set = None
             # find set with minimum cost:elements_added ratio
-            for ((set_id, include_elements), (_, exclude_elements)) in zip(
-                self.subsets_include.items(), self.subsets_exclude.items()
+            for ((set_id, include_elements), (_, exclude_elements)) in tqdm(
+                zip(self.subsets_include.items(), self.subsets_exclude.items()),
+                desc="Exclusion Set Problem Greedy Solver",
             ):  # TODO Rename unpacked variables
                 new_include_elements = len(include_elements - include_covered)
                 new_exclude_elements = len(exclude_elements - exclude_covered)

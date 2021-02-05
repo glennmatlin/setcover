@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import pandas as pd
+from tqdm import tqdm
 from collections import OrderedDict
 
 import tests.test_data
@@ -93,7 +94,10 @@ class WeightedSetCoverProblem:
             min_cost_elem_ratio = float("inf")
             min_set = None
             # find set with minimum cost:elements_added ratio
-            for s, elements in self.subsets.items():  # TODO Rename unpacked variables
+            # TODO Rename unpacked variables
+            for s, elements in tqdm(
+                self.subsets.items(), desc="Weighted Set Problem Greedy Solver"
+            ):
                 new_elements = len(elements - covered)
                 # set may have same elements as already covered -> new_elements = 0
                 # check to avoid division by 0 error
