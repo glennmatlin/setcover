@@ -2,6 +2,8 @@
 
 import pandas as pd
 from collections import OrderedDict
+
+import tests.test_data
 from .set import WeightedSet
 
 
