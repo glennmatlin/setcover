@@ -1,21 +1,18 @@
-from src.set import WeightedSet, ExclusionSet
-
 # Include
 # ["Glenn", "Jeremy W", "Ben", "Victor", "Vijay"]
 
 # Exclude
 # ["Prestinario", "Kamalesh", "Young", "Alex", "Andrea", "Andrew", "Andrey", "Youzhi",
 # "Doug", "Daniel", "Eric","Earnest", "Ethan", "Haroon", 'Justin', "Jean", "Jeremy K"]
-weighted_data = [
+
+weighted_data = (
     ("A10", ["Glenn", "Vijay"], 100.0),
     ("B20", ["Jeremy W", "Ben"], 200.0),
     ("C30", ["Jeremy W", "Victor"], 300.0),
     ("D40", ["Glenn", "Ben"], 400.0),
     ("E50", ["Victor", "Glenn", "Vijay"], 500.0),
-]
-weighted_sets = [
-    WeightedSet(set_id=w[0], subset=w[1], weight=w[2]) for w in weighted_data
-]
+)
+
 exclusion_data = [
     (
         "A10",
@@ -115,8 +112,4 @@ exclusion_data = [
             "Alex",
         ],
     ),
-]
-
-exclusion_sets = [
-    ExclusionSet(set_id=w[0], subset_include=w[1], subset_exclude=w[2]) for w in exclusion_data
 ]

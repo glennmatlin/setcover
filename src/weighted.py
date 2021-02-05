@@ -50,7 +50,7 @@ class WeightedSetCoverProblem:
         set_problem = OrderedDict()
         subsets = OrderedDict()
         weights = OrderedDict()
-        for weighted_set in tests.test_data.weighted_sets:
+        for weighted_set in self.weighted_sets:
             subset_id, subset, weight = weighted_set
             subsets[subset_id] = set(subset)
             weights[subset_id] = weight

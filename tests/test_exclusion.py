@@ -1,6 +1,5 @@
 from src.exclusion import ExclusionSetCoverProblem
-
-from tests.test_data import exclusion_sets
+from tests.test_sets import exclusion_sets
 import logging
 
 log = logging.getLogger(__name__)

@@ -1,11 +1,10 @@
-from pyspark import SparkContext
-from pyspark.sql import SQLContext
+from pyspark.sql import SparkSession
 import pytest
 
 
 @pytest.fixture(scope="session")
-def sql_context():
-    spark_context = SparkContext()
-    sql_context = SQLContext(spark_context)
-    yield sql_context
-    spark_context.stop()
+def spark_fixture():
+    spark = (
+        SparkSession.builder.master("local").appName("pyspark-setcover").getOrCreate()
+    )
+    yield spark
