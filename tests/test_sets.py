@@ -1,4 +1,4 @@
-from src.set import WeightedSet, ExclusionSet
+from setcover.set import WeightedSet, ExclusionSet
 from .test_data import weighted_data, exclusion_data
 
 weighted_sets = [

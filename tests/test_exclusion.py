@@ -1,4 +1,4 @@
-from src.exclusion import ExclusionSetCoverProblem
+from setcover.exclusion import ExclusionSetCoverProblem
 from tests.test_sets import exclusion_sets
 import logging
 

@@ -1,4 +1,4 @@
-from src.weighted import WeightedSetCoverProblem
+from setcover.weighted import WeightedSetCoverProblem
 from tests.test_sets import weighted_sets
 
 
