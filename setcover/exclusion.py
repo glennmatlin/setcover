@@ -9,6 +9,13 @@ import logging
 
 log = logging.getLogger(__name__)
 
+import os
+from multiprocessing import Process, current_process, Pool
+
+import concurrent.futures
+
+# TODO Can this be done in parallel threads to speed up?
+
 
 class ExclusionSetCoverProblem:
     # TODO testing, docstring, typing
@@ -62,50 +69,57 @@ class ExclusionSetCoverProblem:
         return universe, subsets_include, subsets_exclude
 
     @staticmethod
+    def calculate_set_cost(subsets_data, include_covered, exclude_covered):
+        ((set_id, include_elements), (_, exclude_elements)) = subsets_data
+        process_id, process_name = os.getpid(), current_process().name
+        log.info(f"Process ID: {process_id}")
+        log.info(f"Process Name: {process_name}")
+        new_include_elements = len(include_elements - include_covered)
+        new_exclude_elements = len(exclude_elements - exclude_covered)
+        # set may have same elements as already covered -> Check to avoid division by 0 error
+        if new_include_elements != 0:
+            cost_elem_ratio = new_exclude_elements / new_include_elements
+        else:
+            cost_elem_ratio = float("inf")
+        return set_id, cost_elem_ratio
+
+    @staticmethod
     def greedy_solver(self):
-        """
-        Inputs:
-        - universe: set[str]
-        - subsets_include: OrderedDict{str:set[str]}
-        - subsets_exclude: OrderedDict{str:set[str]}
-        """
         # TODO Unit test, better docstring, typing
         # TODO Finding most cost-effective using priority queue.
 
         # if elements don't cover problem -> invalid inputs for set cover problem
-        log.info(self.universe)
-        log.info(self.subsets_include.items())
-        include_elements = set(
+        log.info(f"Universe: {self.universe}")
+        log.info(f"Subsets Include: {self.subsets_include.items()}")
+        log.info(f"Subsets Exclude: {self.subsets_exclude.items()}")
+        all_elements = set(
             e for s in self.subsets_include.keys() for e in self.subsets_include[s]
         )
-        if include_elements != self.universe:
-            log.error(include_elements)
-            log.error(self.universe)
-            raise Exception("universe is incomplete")
+        if all_elements != self.universe:
+            log.error(f"All Elements: {all_elements}")
+            log.error(f"Universe: {self.universe}")
+            raise Exception("Universe is incomplete")
 
         # track elements of problem covered
         include_covered = set()
         exclude_covered = set()
         cover_solution = []
 
+        # TODO add limiter argument for k sets max
         while include_covered != self.universe:
-            min_cost_elem_ratio = float("inf")
-            min_set = None
             # find set with minimum cost:elements_added ratio
-            for ((set_id, include_elements), (_, exclude_elements)) in tqdm(
-                zip(self.subsets_include.items(), self.subsets_exclude.items()),
-                desc="Exclusion Set Problem Greedy Solver",
-            ):  # TODO Rename unpacked variables
-                new_include_elements = len(include_elements - include_covered)
-                new_exclude_elements = len(exclude_elements - exclude_covered)
-                # set may have same elements as already covered -> new_elements = 0
-                # check to avoid division by 0 error
-                if new_include_elements != 0:
-                    cost_elem_ratio = new_exclude_elements / new_include_elements
-                    if cost_elem_ratio < min_cost_elem_ratio:
-                        min_cost_elem_ratio = cost_elem_ratio
-                        min_set = set_id
-            cover_solution.append(min_set)  # Track sets used
-            include_covered |= self.subsets_include[min_set]  # Bitwise union of sets
-            exclude_covered |= self.subsets_exclude[min_set]
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                subsets_data = list(zip(
+                    self.subsets_include.items(), self.subsets_exclude.items()))
+                ic = [include_covered for _ in subsets_data]
+                ec = [exclude_covered for _ in subsets_data]
+                results = executor.map(self.calculate_set_cost, subsets_data, ic, ec)
+            min_set = min(results, key=lambda t: t[1])
+            log.info(min_set)
+            # TODO !!! find the minimum cost set in this list as min_set
+            cover_solution.append(
+                min_set
+            )  #TODO return the weight for each set when it was used
+            include_covered |= self.subsets_include[min_set[0]]  # Bitwise union of sets
+            exclude_covered |= self.subsets_exclude[min_set[0]]
         return cover_solution, include_covered, exclude_covered

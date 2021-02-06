@@ -5,9 +5,11 @@ import logging
 log = logging.getLogger(__name__)
 
 
+# def test_set_calc():
+
+
 class TestExclusion:
-    @staticmethod
-    def test_init():
+    def test_exclusion(self):
         exclusion_problem = ExclusionSetCoverProblem(exclusion_sets)
         assert exclusion_problem
         log.info("universe: {}".format(exclusion_problem.universe))
