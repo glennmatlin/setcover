@@ -1,27 +1,24 @@
 #!/usr/bin/python
 
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import pandas as pd
 from collections import OrderedDict
-
+import os
+from multiprocessing import current_process
 from setcover.set import ExclusionSet
 import logging
+import concurrent.futures
 
 log = logging.getLogger(__name__)
 
-import os
-from multiprocessing import Process, current_process, Pool
-
-import concurrent.futures
 
 # TODO Can this be done in parallel threads to speed up?
 
 
 class ExclusionSetCoverProblem:
-    # TODO testing, docstring, typing
     # TODO Function argument for limiting sets selected
     # TODO Implement a maximization constraint for coverage
-    # TODO: Lazy import functionality that checks for datatype
+    # TODO: Better init process with lazy functionality to check datatype
 
     def __init__(self, exclusion_sets):
         self.universe, self.subsets_include, self.subsets_exclude = self.make_data(
@@ -34,26 +31,25 @@ class ExclusionSetCoverProblem:
         ) = self.greedy_solver(self)
 
     @classmethod
-    def from_lists(cls, ids, sets_include, sets_exclude):
-        """
-        Convert pandas DataFrame to into a list of named tuples
-        """
+    def from_lists(
+        cls, ids: list[str], sets_include: list[set[str]], sets_exclude: list[set[str]]
+    ) -> object:
         # TODO Unit test
         rows = list(zip(ids, sets_include, sets_exclude))
         exclusion_sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
         return cls(exclusion_sets)
 
     @classmethod
-    def from_dataframe(cls, df: pd.DataFrame):
-        """
-        Convert pandas DataFrame to into a list of named tuples
-        """
+    def from_dataframe(cls, df: pd.DataFrame) -> object:
         # TODO Unit test
         rows = list(df.itertuples(name="Row", index=False))
         exclusion_sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
         return cls(exclusion_sets)
 
-    def make_data(self, exclusion_sets):
+    @staticmethod
+    def make_data(
+        exclusion_sets: ExclusionSet,
+    ) -> (set[str], dict[str : set[str]], dict[str : set[str]]):
         """
         input: ExclusionSet(id=str, include_set=set[str], exclude_set=set[str])
         """
@@ -71,7 +67,10 @@ class ExclusionSetCoverProblem:
     @staticmethod
     def calculate_set_cost(subsets_data, include_covered, exclude_covered):
         ((set_id, include_elements), (_, exclude_elements)) = subsets_data
-        process_id, process_name = os.getpid(), current_process().name
+        process_id, process_name = (
+            os.getpid(),
+            current_process().name,
+        )  # TODO Find out if I can use this w/ concurrant
         log.info(f"Process ID: {process_id}")
         log.info(f"Process Name: {process_name}")
         new_include_elements = len(include_elements - include_covered)
@@ -108,18 +107,25 @@ class ExclusionSetCoverProblem:
         # TODO add limiter argument for k sets max
         while include_covered != self.universe:
             # find set with minimum cost:elements_added ratio
+            subsets_data = list(
+                zip(self.subsets_include.items(), self.subsets_exclude.items())
+            )
+            n = len(subsets_data)
+            ic = [include_covered] * n
+            ec = [exclude_covered] * n  # TODO Find a way to avoid creating lists
             with concurrent.futures.ProcessPoolExecutor() as executor:
-                subsets_data = list(zip(
-                    self.subsets_include.items(), self.subsets_exclude.items()))
-                ic = [include_covered for _ in subsets_data]
-                ec = [exclude_covered for _ in subsets_data]
-                results = executor.map(self.calculate_set_cost, subsets_data, ic, ec)
+                results = list(
+                    tqdm(
+                        executor.map(self.calculate_set_cost, subsets_data, ic, ec),
+                        total=n,
+                    )
+                )
             min_set = min(results, key=lambda t: t[1])
             log.info(min_set)
             # TODO !!! find the minimum cost set in this list as min_set
             cover_solution.append(
                 min_set
-            )  #TODO return the weight for each set when it was used
+            )  # TODO return the weight for each set when it was used
             include_covered |= self.subsets_include[min_set[0]]  # Bitwise union of sets
             exclude_covered |= self.subsets_exclude[min_set[0]]
         return cover_solution, include_covered, exclude_covered
