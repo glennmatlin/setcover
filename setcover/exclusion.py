@@ -49,11 +49,7 @@ class ExclusionSetCoverProblem:
     @staticmethod
     def make_data(
         exclusion_sets: ExclusionSet,
-    ) -> (set[str], dict[str : set[str]], dict[str : set[str]]):
-        """
-        input: ExclusionSet(id=str, include_set=set[str], exclude_set=set[str])
-        """
-        # TODO Unit test, better docstring
+    ) -> (set[str], dict[str, set[str]], dict[str, set[str]]):
         universe = set()
         subsets_include = OrderedDict()
         subsets_exclude = OrderedDict()
@@ -70,7 +66,7 @@ class ExclusionSetCoverProblem:
         process_id, process_name = (
             os.getpid(),
             current_process().name,
-        )  # TODO Find out if I can use this w/ concurrant
+        )
         log.info(f"Process ID: {process_id}")
         log.info(f"Process Name: {process_name}")
         new_include_elements = len(include_elements - include_covered)
@@ -84,9 +80,6 @@ class ExclusionSetCoverProblem:
 
     @staticmethod
     def greedy_solver(self):
-        # TODO Unit test, better docstring, typing
-        # TODO Finding most cost-effective using priority queue.
-
         # if elements don't cover problem -> invalid inputs for set cover problem
         log.info(f"Universe: {self.universe}")
         log.info(f"Subsets Include: {self.subsets_include.items()}")
