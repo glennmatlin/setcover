@@ -8,6 +8,7 @@ from multiprocessing import current_process
 from setcover.set import ExclusionSet
 import logging
 import concurrent.futures
+from typing import List, Dict, Set
 
 log = logging.getLogger(__name__)
 
@@ -20,19 +21,18 @@ class ExclusionSetCoverProblem:
     # TODO Implement a maximization constraint for coverage
     # TODO: Better init process with lazy functionality to check datatype
 
-    def __init__(self, exclusion_sets):
-        self.universe, self.subsets_include, self.subsets_exclude = self.make_data(
-            exclusion_sets
-        )
-        (
-            self.cover_solution,
-            self.include_covered,
-            self.exclude_covered,
-        ) = self.greedy_solver(self)
+    def __init__(self, exclusion_sets=None):
+        if exclusion_sets:
+            log.info("Making datasets")
+            self.universe, self.subsets_include, self.subsets_exclude = self.make_data(
+                exclusion_sets
+            )
+        else:
+            pass
 
     @classmethod
     def from_lists(
-        cls, ids: list[str], sets_include: list[set[str]], sets_exclude: list[set[str]]
+        cls, ids: List[str], sets_include: List[Set[str]], sets_exclude: List[Set[str]]
     ) -> object:
         # TODO Unit test
         rows = list(zip(ids, sets_include, sets_exclude))
@@ -49,7 +49,7 @@ class ExclusionSetCoverProblem:
     @staticmethod
     def make_data(
         exclusion_sets: ExclusionSet,
-    ) -> (set[str], dict[str, set[str]], dict[str, set[str]]):
+    ) -> (Set[str], Dict[str, Set[str]], Dict[str, Set[str]]):
         universe = set()
         subsets_include = OrderedDict()
         subsets_exclude = OrderedDict()
@@ -78,8 +78,8 @@ class ExclusionSetCoverProblem:
             cost_elem_ratio = float("inf")
         return set_id, cost_elem_ratio
 
-    @staticmethod
     def greedy_solver(self):
+        log.info("Solving problem")
         # if elements don't cover problem -> invalid inputs for set cover problem
         log.info(f"Universe: {self.universe}")
         log.info(f"Subsets Include: {self.subsets_include.items()}")
@@ -121,4 +121,8 @@ class ExclusionSetCoverProblem:
             )  # TODO return the weight for each set when it was used
             include_covered |= self.subsets_include[min_set[0]]  # Bitwise union of sets
             exclude_covered |= self.subsets_exclude[min_set[0]]
-        return cover_solution, include_covered, exclude_covered
+        self.cover_solution, self.include_covered, self.exclude_covered = (
+            cover_solution,
+            include_covered,
+            exclude_covered,
+        )
