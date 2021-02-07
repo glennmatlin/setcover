@@ -98,29 +98,37 @@ class ExclusionSetCoverProblem:
         cover_solution = []
 
         # TODO add limiter argument for k sets max
-        while include_covered != self.universe:
-            # find set with minimum cost:elements_added ratio
-            subsets_data = list(
-                zip(self.subsets_include.items(), self.subsets_exclude.items())
-            )
-            n = len(subsets_data)
-            ic = [include_covered] * n
-            ec = [exclude_covered] * n  # TODO Find a way to avoid creating lists
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                results = list(
-                    tqdm(
-                        executor.map(self.calculate_set_cost, subsets_data, ic, ec),
-                        total=n,
-                    )
+        with tqdm(total=len(self.universe), desc="Total Progress") as total_progress:
+            while include_covered != self.universe:
+                # find set with minimum cost:elements_added ratio
+                subsets_data = list(
+                    zip(self.subsets_include.items(), self.subsets_exclude.items())
                 )
-            min_set = min(results, key=lambda t: t[1])
-            log.info(min_set)
-            # TODO !!! find the minimum cost set in this list as min_set
-            cover_solution.append(
-                min_set
-            )  # TODO return the weight for each set when it was used
-            include_covered |= self.subsets_include[min_set[0]]  # Bitwise union of sets
-            exclude_covered |= self.subsets_exclude[min_set[0]]
+                n = len(subsets_data)
+                ic = [include_covered] * n
+                ec = [exclude_covered] * n  # TODO Find a way to avoid creating lists
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    results = list(
+                        tqdm(
+                            executor.map(self.calculate_set_cost, subsets_data, ic, ec),
+                            total=n,
+                            desc="Set Progress",
+                        )
+                    )
+                min_set = min(results, key=lambda t: t[1])
+                newly_covered_inclusive = self.subsets_include[min_set[0]]
+                newly_covered_exclusive = self.subsets_exclude[min_set[0]]
+
+                # TODO !!! find the minimum cost set in this list as min_set
+                cover_solution.append(
+                    min_set
+                )  # TODO return the weight for each set when it was used
+                include_covered |= newly_covered_inclusive  # Bitwise union of sets
+                exclude_covered |= newly_covered_exclusive
+                log.info(f"Minimum cost set found: {min_set}")
+                log.info(f"Minimum cost set found: {len(newly_covered_inclusive)}")
+                total_progress.update(len(newly_covered_inclusive))
+
         self.cover_solution, self.include_covered, self.exclude_covered = (
             cover_solution,
             include_covered,
