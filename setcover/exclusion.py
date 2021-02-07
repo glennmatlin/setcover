@@ -96,8 +96,8 @@ class ExclusionSetCoverProblem:
         include_covered = set()
         exclude_covered = set()
         cover_solution = []
-
-        # TODO add limiter argument for k sets max
+        # TODO return the weight for each set when it was used
+        # TODO add limiter argument for k sets max, w/ tqdm monitoring
         with tqdm(total=len(self.universe), desc="Total Progress") as total_progress:
             while include_covered != self.universe:
                 # find set with minimum cost:elements_added ratio
@@ -116,18 +116,16 @@ class ExclusionSetCoverProblem:
                         )
                     )
                 min_set = min(results, key=lambda t: t[1])
-                newly_covered_inclusive = self.subsets_include[min_set[0]]
-                newly_covered_exclusive = self.subsets_exclude[min_set[0]]
-
-                # TODO !!! find the minimum cost set in this list as min_set
                 cover_solution.append(
                     min_set
-                )  # TODO return the weight for each set when it was used
+                )
+                newly_covered_inclusive = self.subsets_include[min_set[0]].difference(include_covered)
+                newly_covered_exclusive = self.subsets_exclude[min_set[0]].difference(exclude_covered)
+                total_progress.update(len(newly_covered_inclusive))
                 include_covered |= newly_covered_inclusive  # Bitwise union of sets
                 exclude_covered |= newly_covered_exclusive
                 log.info(f"Minimum cost set found: {min_set}")
                 log.info(f"Minimum cost set found: {len(newly_covered_inclusive)}")
-                total_progress.update(len(newly_covered_inclusive))
 
         self.cover_solution, self.include_covered, self.exclude_covered = (
             cover_solution,
