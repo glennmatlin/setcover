@@ -1,0 +1,12 @@
+name: pyspark-setcover
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8.5
+  - pandas=1.2.1
+  - setuptools=52.0.0
+  - tqdm=4.56.0
+  - pyspark=3.0.1
+  - findspark=1.3.0
+  - pytest=6.2.2

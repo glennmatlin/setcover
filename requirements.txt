@@ -1,8 +1,0 @@
-# TODO Pin packages
-pandas
-setuptools
-tqdm
-spark
-pyspark
-findspark
-pytest >= 6.0.0
