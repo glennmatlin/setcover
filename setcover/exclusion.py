@@ -13,9 +13,6 @@ from typing import List, Dict, Set
 log = logging.getLogger(__name__)
 
 
-# TODO Can this be done in parallel threads to speed up?
-
-
 class ExclusionSetCoverProblem:
     # TODO Function argument for limiting sets selected
     # TODO Implement a maximization constraint for coverage
