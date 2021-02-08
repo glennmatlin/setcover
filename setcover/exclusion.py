@@ -8,7 +8,7 @@ from multiprocessing import current_process
 from setcover.set import ExclusionSet
 import logging
 import concurrent.futures
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Iterable
 from tests.test_sets import exclusion_sets
 
 log = logging.getLogger(__name__)
@@ -30,13 +30,18 @@ class ExclusionSetCoverProblem:
 
     @staticmethod
     def _make_data(
-        exclusion_sets: List[ExclusionSet],
+        sets: List[ExclusionSet],
     ) -> object:
+        """
+
+        :param sets: List of Named Tuples
+        :return:
+        """
         universe = set({})
         subsets_include = OrderedDict()
         subsets_exclude = OrderedDict()
-        for exclusion_set in exclusion_sets:
-            subset_id, subset_include, subset_exclude = exclusion_set
+        for set_ in sets:
+            subset_id, subset_include, subset_exclude = set_
             subsets_include[subset_id] = set(subset_include)
             subsets_exclude[subset_id] = set(subset_exclude)
             universe |= set(subset_include)
@@ -47,20 +52,43 @@ class ExclusionSetCoverProblem:
             sets
         )
 
+    @staticmethod
+    def _rows_to_sets(rows: Iterable) -> List[ExclusionSet]:
+        return [ExclusionSet(r[0], r[1], r[2]) for r in rows]
+
     def from_lists(
         self, ids: List[str], sets_include: List[Set[str]], sets_exclude: List[Set[str]]
     ):
+        """
+        Used to import Python Lists
+        :param ids:
+        :param sets_include:
+        :param sets_exclude:
+        :return:
+        """
         rows = list(zip(ids, sets_include, sets_exclude))
-        sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
+        sets = self._rows_to_sets(rows)
         self.from_sets(sets)
 
     def from_dataframe(self, df: pd.DataFrame):
+        """
+        Used to import Pandas DataFrames
+        :param df:
+        :return:
+        """
         rows = list(df.itertuples(name="Row", index=False))
-        sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
+        sets = self._rows_to_sets(rows)
         self.from_sets(sets)
 
     @staticmethod
     def _calculate_set_cost(subsets_data, include_covered, exclude_covered):
+        """
+        Calculate the cost of adding the set to the problem solution
+        :param subsets_data:
+        :param include_covered:
+        :param exclude_covered:
+        :return:
+        """
         ((set_id, include_elements), (_, exclude_elements)) = subsets_data
         process_id, process_name = (
             os.getpid(),
@@ -78,11 +106,11 @@ class ExclusionSetCoverProblem:
         return set_id, cost_elem_ratio
 
     def solve(self):
-        log.info("Solving problem")
-        # if elements don't cover problem -> invalid inputs for set cover problem
-        log.info(f"Universe: {self.universe}")
-        log.info(f"Subsets Include: {self.subsets_include.items()}")
-        log.info(f"Subsets Exclude: {self.subsets_exclude.items()}")
+        log.info("Solving set coverage problem")
+        # If elements don't cover problem -> invalid inputs for set cover problem
+        log.debug(f"Universe: {self.universe}")
+        log.debug(f"Subsets Include: {self.subsets_include.items()}")
+        log.debug(f"Subsets Exclude: {self.subsets_exclude.items()}")
         all_elements = set(
             e for s in self.subsets_include.keys() for e in self.subsets_include[s]
         )
