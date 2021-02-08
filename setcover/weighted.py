@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 import pandas as pd
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from collections import OrderedDict
 
-import tests.test_data
 from .set import WeightedSet
 
 
 class WeightedSetCoverProblem:
+    # TODO Implement pool multiprocessing
     # TODO testing, docstring, typing
     # TODO rename 'subsets' to 'set_cover'
     # TODO Function argument for limiting sets selected
