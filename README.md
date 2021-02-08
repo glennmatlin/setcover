@@ -10,8 +10,9 @@ Project goal is to implement solver for use on distributed systems with PySpark 
 
 
 ## Explained
-
 ```
+Complexity: U * log(S)
+
 Universe U of n elements
 
 Subsets S of U:
@@ -45,8 +46,6 @@ miniconda3
 ```shell
 conda create -n pyspark-setcover -f environment.yml
 ```
-
-Time complexity of algorithm in BigO is `O(|U| * log|S|)`.
 
 ## Testing
  
