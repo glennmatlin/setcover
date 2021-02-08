@@ -1,10 +1,15 @@
-Weighted Set Cover
+pyspark-setcover
 ================
 
 ## Summary
-Solution for the "Weighted Set Cover Problem" using a greedy algorithm which approximates the optimal solution.
+Package to solve set coverage problems using a greedy algorithm to approximate the optimal solution.
 
-Algorithm picks set with the lowest ratio of set weight to the number of new elements covered.
+Algorithm picks set with the lost set cost (minimization constraint) compared to the number of new elements covered (maximization).
+
+Project goal is to implement solver for use on distributed systems with PySpark 3, Dask, etc.
+
+
+## Explained
 
 ```
 Universe U of n elements
@@ -31,22 +36,28 @@ Output:
     SetCover(U,S) == ({S2, S3}, 13)
 ```
 
+## Requirements
+
+miniconda3
+
+## Install
+
+```shell
+conda create -n pyspark-setcover -f environment.yml
+```
+
 Time complexity of algorithm in BigO is `O(|U| * log|S|)`.
 
 ## Testing
+ 
+Two methods:
 
-Use `make`
-
-## TODOs:
-- Feature: Check a second set for elements to be covered or avoided
-- Feature: Priority queue 
-- Feature: Improved weighted set data structures
-- CI/CD, pre-commit hooks (flake8, black)
-- Lock master to unapproved commits
+1. Makefile: `make`
+2. Manual: `python3 -m pytest tests` from root
 
 ## References:
 
-### Reading:
+### Method:
 - https://en.wikipedia.org/wiki/Set_cover_problem
 - http://www.cs.ucr.edu/~neal/Young08SetCover.pdf
 - https://www.youtube.com/watch?v=MEz1J9wY2iM
