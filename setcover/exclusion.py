@@ -10,6 +10,7 @@ import logging
 import concurrent.futures
 from typing import List, Dict, Set
 from tests.test_sets import exclusion_sets
+
 log = logging.getLogger(__name__)
 
 
@@ -18,36 +19,20 @@ class ExclusionSetCoverProblem:
     # TODO Implement a maximization constraint for coverage
     # TODO: Better init process with lazy functionality to check datatype
 
-    def __init__(self, exclusion_sets=None):
-        if exclusion_sets:
-            log.info("Making datasets")
-            self.universe, self.subsets_include, self.subsets_exclude = self.make_data(
-                exclusion_sets
+    def __init__(self, input_sets=None):  # TODO Lazy detection of input data
+        self.cover_solution = self.include_covered = self.exclude_covered = None
+        self.universe = self.subsets_include = self.subsets_exclude = None
+        if input_sets:
+            log.info("Building data set with included data")
+            self.universe, self.subsets_include, self.subsets_exclude = self._make_data(
+                input_sets
             )
-        else:
-            pass
-
-    @classmethod
-    def from_lists(
-        cls, ids: List[str], sets_include: List[Set[str]], sets_exclude: List[Set[str]]
-    ) -> object:
-        # TODO Unit test
-        rows = list(zip(ids, sets_include, sets_exclude))
-        exclusion_sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
-        return cls(exclusion_sets)
-
-    @classmethod
-    def from_dataframe(cls, df: pd.DataFrame) -> object:
-        # TODO Unit test
-        rows = list(df.itertuples(name="Row", index=False))
-        exclusion_sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
-        return cls(exclusion_sets)
 
     @staticmethod
-    def make_data(
-        exclusion_sets: ExclusionSet,
-    ) -> (Set[str], Dict[str, Set[str]], Dict[str, Set[str]]):
-        universe = set()
+    def _make_data(
+        exclusion_sets: List[ExclusionSet],
+    ) -> object:
+        universe = set({})
         subsets_include = OrderedDict()
         subsets_exclude = OrderedDict()
         for exclusion_set in exclusion_sets:
@@ -57,8 +42,25 @@ class ExclusionSetCoverProblem:
             universe |= set(subset_include)
         return universe, subsets_include, subsets_exclude
 
+    def from_sets(self, sets: List[ExclusionSet]):
+        self.universe, self.subsets_include, self.subsets_exclude = self._make_data(
+            sets
+        )
+
+    def from_lists(
+        self, ids: List[str], sets_include: List[Set[str]], sets_exclude: List[Set[str]]
+    ):
+        rows = list(zip(ids, sets_include, sets_exclude))
+        sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
+        self.from_sets(sets)
+
+    def from_dataframe(self, df: pd.DataFrame):
+        rows = list(df.itertuples(name="Row", index=False))
+        sets = [ExclusionSet(r[0], r[1], r[2]) for r in rows]
+        self.from_sets(sets)
+
     @staticmethod
-    def calculate_set_cost(subsets_data, include_covered, exclude_covered):
+    def _calculate_set_cost(subsets_data, include_covered, exclude_covered):
         ((set_id, include_elements), (_, exclude_elements)) = subsets_data
         process_id, process_name = (
             os.getpid(),
@@ -75,7 +77,7 @@ class ExclusionSetCoverProblem:
             cost_elem_ratio = float("inf")
         return set_id, cost_elem_ratio
 
-    def greedy_solver(self):
+    def solve(self):
         log.info("Solving problem")
         # if elements don't cover problem -> invalid inputs for set cover problem
         log.info(f"Universe: {self.universe}")
@@ -93,12 +95,12 @@ class ExclusionSetCoverProblem:
         include_covered = set()
         exclude_covered = set()
         cover_solution = []
-        iteration_counter = 0
+        iteration_counter = 1
         # TODO return the weight for each set when it was used
         # TODO add limiter argument for k sets max, w/ tqdm monitoring
-        with tqdm(
-            total=len(self.subsets_include.keys()), desc="# Codes Used"
-        ) as tqdm_iters, tqdm(
+        n_codes = len(self.subsets_include.keys())
+        log.info(f"Total DX Codes: {n_codes}")
+        with tqdm(total=n_codes, desc="Codes in Solution") as tqdm_iters, tqdm(
             total=len(self.universe), desc="Coverage of Universe"
         ) as tqdm_coverage:
             # TODO: Remove/skip in subset_data set_ids in cover_solution, move to while loop
@@ -107,13 +109,19 @@ class ExclusionSetCoverProblem:
             )
             while include_covered != self.universe:
                 n = len(subsets_data)
-                ic = [include_covered] * n  # TODO Find a way to avoid creating lists just to feed in
-                ec = [exclude_covered] * n  # TODO Find a way to avoid creating lists just to feed in
+                ic = [
+                    include_covered
+                ] * n  # TODO Find a way to avoid creating lists just to feed in
+                ec = [
+                    exclude_covered
+                ] * n  # TODO Find a way to avoid creating lists just to feed in
                 # Find set with minimum cost:elements_added ratio
                 with concurrent.futures.ProcessPoolExecutor() as executor:
                     results = list(
                         tqdm(
-                            executor.map(self.calculate_set_cost, subsets_data, ic, ec),
+                            executor.map(
+                                self._calculate_set_cost, subsets_data, ic, ec
+                            ),
                             total=n,
                             desc="Calculating Set Costs",
                             leave=False,
@@ -128,21 +136,19 @@ class ExclusionSetCoverProblem:
                     exclude_covered
                 )
                 iteration_counter += 1
-                tqdm_iters.update(tqdm_iters)
+                tqdm_iters.update(iteration_counter)
                 tqdm_coverage.update(len(newly_covered_inclusive))
                 include_covered |= newly_covered_inclusive  # Bitwise union of sets
                 exclude_covered |= newly_covered_exclusive
                 log.info(f"Minimum cost set found: {min_set}")
                 log.info(f"Minimum cost set found: {len(newly_covered_inclusive)}")
 
-        self.cover_solution, self.include_covered, self.exclude_covered = (
-            cover_solution,
-            include_covered,
-            exclude_covered,
-        )
+        self.cover_solution = cover_solution
+        self.include_covered = include_covered
+        self.exclude_covered = exclude_covered
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     problem = ExclusionSetCoverProblem(exclusion_sets)
-    problem.greedy_solver()
-    print(problem.cover_solution)
+    problem.solve()
+    log.info(problem.cover_solution)
