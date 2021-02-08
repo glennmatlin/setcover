@@ -110,6 +110,7 @@ class ExclusionSetCoverProblem:
                             executor.map(self.calculate_set_cost, subsets_data, ic, ec),
                             total=n,
                             desc="Set Progress",
+                            leave=False,
                         )
                     )
                 min_set = min(results, key=lambda t: t[1])
