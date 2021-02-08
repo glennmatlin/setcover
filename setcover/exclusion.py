@@ -9,7 +9,7 @@ from setcover.set import ExclusionSet
 import logging
 import concurrent.futures
 from typing import List, Dict, Set
-
+from tests.test_sets import exclusion_sets
 log = logging.getLogger(__name__)
 
 
@@ -101,14 +101,15 @@ class ExclusionSetCoverProblem:
         ) as tqdm_iters, tqdm(
             total=len(self.universe), desc="Coverage of Universe"
         ) as tqdm_coverage:
+            # TODO: Remove/skip in subset_data set_ids in cover_solution, move to while loop
+            subsets_data = list(
+                zip(self.subsets_include.items(), self.subsets_exclude.items())
+            )
             while include_covered != self.universe:
-                # find set with minimum cost:elements_added ratio
-                subsets_data = list(
-                    zip(self.subsets_include.items(), self.subsets_exclude.items())
-                )
                 n = len(subsets_data)
-                ic = [include_covered] * n
-                ec = [exclude_covered] * n  # TODO Find a way to avoid creating lists
+                ic = [include_covered] * n  # TODO Find a way to avoid creating lists just to feed in
+                ec = [exclude_covered] * n  # TODO Find a way to avoid creating lists just to feed in
+                # Find set with minimum cost:elements_added ratio
                 with concurrent.futures.ProcessPoolExecutor() as executor:
                     results = list(
                         tqdm(
@@ -139,3 +140,9 @@ class ExclusionSetCoverProblem:
             include_covered,
             exclude_covered,
         )
+
+
+if __name__ == '__main__':
+    problem = ExclusionSetCoverProblem(exclusion_sets)
+    problem.greedy_solver()
+    print(problem.cover_solution)
