@@ -93,9 +93,14 @@ class ExclusionSetCoverProblem:
         include_covered = set()
         exclude_covered = set()
         cover_solution = []
+        iteration_counter = 0
         # TODO return the weight for each set when it was used
         # TODO add limiter argument for k sets max, w/ tqdm monitoring
-        with tqdm(total=len(self.universe), desc="Total Progress") as total_progress:
+        with tqdm(
+            total=len(self.subsets_include.keys()), desc="# Codes Used"
+        ) as tqdm_iters, tqdm(
+            total=len(self.universe), desc="Coverage of Universe"
+        ) as tqdm_coverage:
             while include_covered != self.universe:
                 # find set with minimum cost:elements_added ratio
                 subsets_data = list(
@@ -109,17 +114,21 @@ class ExclusionSetCoverProblem:
                         tqdm(
                             executor.map(self.calculate_set_cost, subsets_data, ic, ec),
                             total=n,
-                            desc="Set Progress",
+                            desc="Calculating Set Costs",
                             leave=False,
                         )
                     )
                 min_set = min(results, key=lambda t: t[1])
-                cover_solution.append(
-                    min_set
+                cover_solution.append(min_set)
+                newly_covered_inclusive = self.subsets_include[min_set[0]].difference(
+                    include_covered
                 )
-                newly_covered_inclusive = self.subsets_include[min_set[0]].difference(include_covered)
-                newly_covered_exclusive = self.subsets_exclude[min_set[0]].difference(exclude_covered)
-                total_progress.update(len(newly_covered_inclusive))
+                newly_covered_exclusive = self.subsets_exclude[min_set[0]].difference(
+                    exclude_covered
+                )
+                iteration_counter += 1
+                tqdm_iters.update(tqdm_iters)
+                tqdm_coverage.update(len(newly_covered_inclusive))
                 include_covered |= newly_covered_inclusive  # Bitwise union of sets
                 exclude_covered |= newly_covered_exclusive
                 log.info(f"Minimum cost set found: {min_set}")
