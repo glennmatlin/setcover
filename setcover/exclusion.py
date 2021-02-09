@@ -10,7 +10,7 @@ import logging
 import concurrent.futures
 from typing import List, Dict, Set, Iterable
 from tests.test_sets import exclusion_sets
-
+from itertools import cycle
 log = logging.getLogger(__name__)
 
 
@@ -89,7 +89,7 @@ class ExclusionSetCoverProblem:
         :param exclude_covered:
         :return:
         """
-        ((set_id, include_elements), (_, exclude_elements)) = subsets_data
+        (set_id, include_elements, exclude_elements) = subsets_data
         process_id, process_name = (
             os.getpid(),
             current_process().name,
@@ -103,7 +103,7 @@ class ExclusionSetCoverProblem:
             cost_elem_ratio = new_exclude_elements / new_include_elements
         else:
             cost_elem_ratio = float("inf")
-        return set_id, cost_elem_ratio
+        return set_id, round(cost_elem_ratio, 4)
 
     def solve(self):
         log.info("Solving set coverage problem")
@@ -126,23 +126,21 @@ class ExclusionSetCoverProblem:
         iteration_counter = 1
         # TODO return the weight for each set when it was used
         # TODO add limiter argument for k sets max, w/ tqdm monitoring
-        n_codes = len(self.subsets_include.keys())
-        log.info(f"Total DX Codes: {n_codes}")
-        with tqdm(total=n_codes, desc="Codes in Solution") as tqdm_iters, tqdm(
+        codes = self.subsets_include.keys()
+        log.info(f"Total DX Codes: {len(codes)}")
+        with tqdm(total=len(codes), desc="Codes in Solution") as tqdm_iters, tqdm(
             total=len(self.universe), desc="Coverage of Universe"
         ) as tqdm_coverage:
             # TODO: Remove/skip in subset_data set_ids in cover_solution, move to while loop
-            subsets_data = list(
-                zip(self.subsets_include.items(), self.subsets_exclude.items())
-            )
             while include_covered != self.universe:
+                subsets_zip = zip(codes, self.subsets_include.values(), self.subsets_exclude.values())
+                skip_codes = [code for code,cost in cover_solution]
+                log.debug(f"Codes skipping: {skip_codes}")
+                subsets_data = [(code, incl, excl) for code, incl, excl in subsets_zip if code not in skip_codes]
                 n = len(subsets_data)
-                ic = [
-                    include_covered
-                ] * n  # TODO Find a way to avoid creating lists just to feed in
-                ec = [
-                    exclude_covered
-                ] * n  # TODO Find a way to avoid creating lists just to feed in
+                log.debug(f"len(subsets_data) == {n}")
+                # Iterator cycles for multiprocessing
+                ic, ec = cycle([include_covered]), cycle([exclude_covered])
                 # Find set with minimum cost:elements_added ratio
                 with concurrent.futures.ProcessPoolExecutor() as executor:
                     results = list(
@@ -168,9 +166,11 @@ class ExclusionSetCoverProblem:
                 tqdm_coverage.update(len(newly_covered_inclusive))
                 include_covered |= newly_covered_inclusive  # Bitwise union of sets
                 exclude_covered |= newly_covered_exclusive
-                log.info(f"Minimum cost set found: {min_set}")
-                log.info(f"Minimum cost set found: {len(newly_covered_inclusive)}")
-
+                log.info(f"""Set found: {min_set[0]}
+                Cost: {min_set[1]}
+                Added Coverage: {len(newly_covered_inclusive)}
+                """)
+        log.debug(f"Cover Solution: {cover_solution}")
         self.cover_solution = cover_solution
         self.include_covered = include_covered
         self.exclude_covered = exclude_covered

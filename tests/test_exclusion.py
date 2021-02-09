@@ -8,8 +8,10 @@ log = logging.getLogger(__name__)
 class TestExclusion:
     def test_exclusion(self):
         exclusion_problem = ExclusionSetCoverProblem(exclusion_sets)
-        log.debug(f"universe: {exclusion_problem.universe}")
-        log.debug(f"subsets_include: {exclusion_problem.subsets_include}")
-        log.debug(f"subsets_exclude: {exclusion_problem.subsets_exclude}")
         exclusion_problem.solve()
-        log.debug(f"cover_solution: {exclusion_problem.cover_solution}")
+        assert exclusion_problem.cover_solution == [('E50', 4.3333), ('B20', 2.0)]
+
+
+# ({'Jeremy W', 'Ben', 'Glenn', 'Vijay', 'Victor'},
+# OrderedDict([('A10', {'Glenn', 'Vijay'}), ('B20', {'Jeremy W', 'Ben'}), ('C30', {'Jeremy W', 'Victor'}), ('D40', {'Glenn', 'Ben'}), ('E50', {'Glenn', 'Vijay', 'Victor'})]),
+# OrderedDict([('A10', {'Young', 'Jeremy K', 'Daniel', 'Kamalesh', 'Prestinario', 'Andrea', 'Ethan', 'Youzhi', 'Jean', 'Eric', 'Haroon'}), ('B20', {'Young', 'Jeremy K', 'Alex', 'Daniel', 'Justin', 'Prestinario', 'Kamalesh', 'Andrea', 'Youzhi', 'Doug', 'Jean', 'Earnest', 'Andrew', 'Andrey', 'Haroon'}), ('C30', {'Young', 'Jeremy K', 'Alex', 'Kamalesh', 'Prestinario', 'Andrea', 'Youzhi', 'Doug', 'Earnest', 'Andrew', 'Eric', 'Andrey', 'Haroon'}), ('D40', {'Young', 'Alex', 'Daniel', 'Kamalesh', 'Justin', 'Andrea', 'Prestinario', 'Youzhi', 'Doug', 'Ethan', 'Jean', 'Earnest', 'Andrew', 'Eric', 'Andrey', 'Haroon'}), ('E50', {'Young', 'Jeremy K', 'Alex', 'Daniel', 'Kamalesh', 'Prestinario', 'Justin', 'Ethan', 'Doug', 'Jean', 'Andrew', 'Eric', 'Haroon'})]))
