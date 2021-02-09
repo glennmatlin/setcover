@@ -2,6 +2,7 @@ from setcover.exclusion import ExclusionSetCoverProblem
 from tests.test_sets import exclusion_sets
 import logging
 
+logging.getLogger("py4j").setLevel(logging.ERROR)
 log = logging.getLogger(__name__)
 
 
