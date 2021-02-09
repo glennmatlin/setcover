@@ -9,7 +9,7 @@ class TestExclusion:
     def test_exclusion(self):
         exclusion_problem = ExclusionSetCoverProblem(exclusion_sets)
         exclusion_problem.solve()
-        assert exclusion_problem.cover_solution == [('E50', 4.3333), ('B20', 2.0)]
+        assert exclusion_problem.cover_solution == [("E50", 4.3333), ("B20", 2.0)]
 
 
 # ({'Jeremy W', 'Ben', 'Glenn', 'Vijay', 'Victor'},

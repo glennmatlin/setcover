@@ -11,6 +11,7 @@ import concurrent.futures
 from typing import List, Dict, Set, Iterable
 from tests.test_sets import exclusion_sets
 from itertools import cycle
+
 log = logging.getLogger(__name__)
 
 
@@ -133,10 +134,16 @@ class ExclusionSetCoverProblem:
         ) as tqdm_coverage:
             # TODO: Remove/skip in subset_data set_ids in cover_solution, move to while loop
             while include_covered != self.universe:
-                subsets_zip = zip(codes, self.subsets_include.values(), self.subsets_exclude.values())
-                skip_codes = [code for code,cost in cover_solution]
+                subsets_zip = zip(
+                    codes, self.subsets_include.values(), self.subsets_exclude.values()
+                )
+                skip_codes = [code for code, cost in cover_solution]
                 log.debug(f"Codes skipping: {skip_codes}")
-                subsets_data = [(code, incl, excl) for code, incl, excl in subsets_zip if code not in skip_codes]
+                subsets_data = [
+                    (code, incl, excl)
+                    for code, incl, excl in subsets_zip
+                    if code not in skip_codes
+                ]
                 n = len(subsets_data)
                 log.debug(f"len(subsets_data) == {n}")
                 # Iterator cycles for multiprocessing
@@ -166,10 +173,12 @@ class ExclusionSetCoverProblem:
                 tqdm_coverage.update(len(newly_covered_inclusive))
                 include_covered |= newly_covered_inclusive  # Bitwise union of sets
                 exclude_covered |= newly_covered_exclusive
-                log.info(f"""Set found: {min_set[0]}
+                log.info(
+                    f"""Set found: {min_set[0]}
                 Cost: {min_set[1]}
                 Added Coverage: {len(newly_covered_inclusive)}
-                """)
+                """
+                )
         log.debug(f"Cover Solution: {cover_solution}")
         self.cover_solution = cover_solution
         self.include_covered = include_covered
