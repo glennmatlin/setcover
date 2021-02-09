@@ -106,7 +106,7 @@ class ExclusionSetCoverProblem:
             cost_elem_ratio = float("inf")
         return set_id, round(cost_elem_ratio, 4)
 
-    def solve(self, limit=None):
+    def solve(self, limit=float("inf")):
         log.info("Solving set coverage problem")
         # If elements don't cover problem -> invalid inputs for set cover problem
         log.debug(f"Universe: {self.universe}")
@@ -133,7 +133,7 @@ class ExclusionSetCoverProblem:
             total=len(self.universe), desc="Coverage of Universe"
         ) as tqdm_coverage:
             # TODO: Remove/skip in subset_data set_ids in cover_solution, move to while loop
-            while include_covered != self.universe & iteration_counter <= limit:
+            while (include_covered != self.universe) & (iteration_counter <= limit):
                 skip_codes = [code for code, cost in cover_solution]
                 log.debug(f"Skipping over {len(skip_codes)} codes already in solution")
                 subsets_zip = zip(
