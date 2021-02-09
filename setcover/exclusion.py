@@ -134,18 +134,18 @@ class ExclusionSetCoverProblem:
         ) as tqdm_coverage:
             # TODO: Remove/skip in subset_data set_ids in cover_solution, move to while loop
             while include_covered != self.universe:
+                skip_codes = [code for code, cost in cover_solution]
+                log.debug(f"Skipping over {len(skip_codes)} codes already in solution")
                 subsets_zip = zip(
                     codes, self.subsets_include.values(), self.subsets_exclude.values()
                 )
-                skip_codes = [code for code, cost in cover_solution]
-                log.debug(f"Codes skipping: {skip_codes}")
                 subsets_data = [
                     (code, incl, excl)
                     for code, incl, excl in subsets_zip
                     if code not in skip_codes
                 ]
                 n = len(subsets_data)
-                log.debug(f"len(subsets_data) == {n}")
+                log.debug(f"Calculating cost for {n} sets")
                 # Iterator cycles for multiprocessing
                 ic, ec = cycle([include_covered]), cycle([exclude_covered])
                 # Find set with minimum cost:elements_added ratio
@@ -161,16 +161,18 @@ class ExclusionSetCoverProblem:
                         )
                     )
                 min_set = min(results, key=lambda t: t[1])
+                code_selected = min_set[0]
                 cover_solution.append(min_set)
-                newly_covered_inclusive = self.subsets_include[min_set[0]].difference(
-                    include_covered
-                )
-                newly_covered_exclusive = self.subsets_exclude[min_set[0]].difference(
-                    exclude_covered
-                )
+                newly_covered_inclusive = self.subsets_include[
+                    code_selected
+                ].difference(include_covered)
+                newly_covered_exclusive = self.subsets_exclude[
+                    code_selected
+                ].difference(exclude_covered)
                 iteration_counter += 1
-                tqdm_iters.update(iteration_counter)
-                tqdm_coverage.update(len(newly_covered_inclusive))
+                tqdm_iters.update(iteration_counter), tqdm_coverage.update(
+                    len(newly_covered_inclusive)
+                )
                 include_covered |= newly_covered_inclusive  # Bitwise union of sets
                 exclude_covered |= newly_covered_exclusive
                 log.info(
