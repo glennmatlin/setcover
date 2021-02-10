@@ -40,13 +40,13 @@ def test_exclusion_sets():
         ]
 
 
-def test_spark_data_struct(spark_fixture):
-    df = spark_fixture.createDataFrame(
-        [
-            ("X70", ["Glenn"], ["Tomo"]),
-            ("Y80", ["Jeremy W"], ["Justin"]),
-            ("Z90", ["Bennie"], ["Olga"]),
-        ],
-        ["set_id", "subset_include", "subset_exclude"],
-    )
-    assert df
+# def test_spark_data_struct(spark_fixture):
+#     df = spark_fixture.createDataFrame(
+#         [
+#             ("X70", ["Glenn"], ["Tomo"]),
+#             ("Y80", ["Jeremy W"], ["Justin"]),
+#             ("Z90", ["Bennie"], ["Olga"]),
+#         ],
+#         ["set_id", "subset_include", "subset_exclude"],
+#     )
+#     assert df
