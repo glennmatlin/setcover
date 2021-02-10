@@ -51,11 +51,10 @@ class ExclusionSetCoverProblem:
             elements_exclude |= set(subset_exclude)
         return elements_include, elements_exclude, subsets_include, subsets_exclude
 
-    # # TODO Do I need from_sets even? or can I just use makedata
-    # def from_sets(self, sets: List[ExclusionSet]):
-    #     self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
-    #         sets
-    #     )
+    def define_data(self, sets: List[ExclusionSet]):
+        self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
+            sets
+        )
 
     @staticmethod
     def _rows_to_sets(rows: Iterable) -> List[ExclusionSet]:
@@ -73,7 +72,7 @@ class ExclusionSetCoverProblem:
         """
         rows = list(zip(ids, sets_include, sets_exclude))
         sets = self._rows_to_sets(rows)
-        self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
+        self.define_data(
             sets
         )
 
@@ -85,7 +84,7 @@ class ExclusionSetCoverProblem:
         """
         rows = list(df.itertuples(name="Row", index=False))
         sets = self._rows_to_sets(rows)
-        self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
+        self.define_data(
             sets
         )
 
