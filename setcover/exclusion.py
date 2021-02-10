@@ -15,10 +15,15 @@ from itertools import repeat
 logging.basicConfig()
 log = logging.getLogger(__name__)
 
+# Algorithm To Dos
 # TODO: Use additional logging handlers from standard library https://docs.python.org/3/library/logging.handlers.html
 # TODO: Implement better logging from cookbook https://docs.python.org/3/howto/logging-cookbook.html
 # TODO: logging to file that is written as the module executes
-# TODO: Cloudwatch on logging file
+
+# Logging To Dos
+# TODO: Cloudwatch on logging file if I move to spark
+
+# API To Dos
 # TODO: Lazy data type checking on __init__
 # TODO: Figure out why  __init__  `obj = obj = None` fails -- is it a pointer issue?
 
