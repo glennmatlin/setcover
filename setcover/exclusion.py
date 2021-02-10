@@ -132,7 +132,6 @@ class ExclusionSetCoverProblem:
         include_covered = set()
         exclude_covered = set()
         cover_solution = []
-        iteration_counter = 1
         # TODO return the weight for each set when it was used
         # TODO add limiter argument for k sets max, w/ tqdm monitoring
         coverage_goal = set(
@@ -189,8 +188,7 @@ class ExclusionSetCoverProblem:
                 exclude_covered |= new_covered_exclusive
                 # Append to our solution
                 cover_solution.append((min_set_id, min_set_cost))
-                iteration_counter += 1
-                tqdm_sets.update(iteration_counter)
+                tqdm_sets.update(1)
                 log.info(
                     f"""Set found: {min_set_id}
                 Cost: {min_set_cost}

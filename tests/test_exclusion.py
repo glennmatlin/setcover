@@ -16,8 +16,6 @@ class TestExclusion:
     def test_exclusion_from_df(self):
         exclusion_problem = ExclusionSetCoverProblem()
         exclusion_problem.from_dataframe(exclusion_df)
-        assert exclusion_problem.subsets_include
-        assert exclusion_problem.subsets_exclude
         exclusion_problem.solve()
         assert exclusion_problem.cover_solution == [("E50", 4.3333), ("B20", 2.0)]
 
