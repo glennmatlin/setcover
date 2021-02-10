@@ -44,6 +44,8 @@ miniconda3
 ## Install
 
 ```shell
+conda config --add channels conda-forge 
+conda config --set channel_priority strict 
 conda create -n pyspark-setcover -f environment.yml
 ```
 
