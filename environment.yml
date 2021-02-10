@@ -1,4 +1,4 @@
-name: /Users/glennmatlin/dev/pyspark-setcover/.env
+name: setcover
 channels:
   - conda-forge
   - defaults
