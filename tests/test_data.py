@@ -116,4 +116,6 @@ exclusion_data = [
     ),
 ]
 
-exclusion_df = pd.DataFrame(exclusion_data, columns =['set_id','set_include','set_exclude'])
+exclusion_df = pd.DataFrame(
+    exclusion_data, columns=["set_id", "set_include", "set_exclude"]
+)

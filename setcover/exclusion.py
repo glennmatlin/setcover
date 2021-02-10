@@ -22,13 +22,18 @@ class ExclusionSetCoverProblem:
 
     def __init__(self, input_sets=None):  # TODO Lazy detection of input data
         self.cover_solution = self.include_covered = self.exclude_covered = None
-        self.elements_include = self.elements_exclude = self.subsets_include = self.subsets_exclude = None
+        self.elements_include = (
+            self.elements_exclude
+        ) = self.subsets_include = self.subsets_exclude = None
 
         if input_sets:
             log.info("Building data set with included data")
-            self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
-                input_sets
-            )
+            (
+                self.elements_include,
+                self.elements_exclude,
+                self.subsets_include,
+                self.subsets_exclude,
+            ) = self._make_data(input_sets)
 
     @staticmethod
     def _make_data(
@@ -52,9 +57,12 @@ class ExclusionSetCoverProblem:
         return elements_include, elements_exclude, subsets_include, subsets_exclude
 
     def define_data(self, sets: List[ExclusionSet]):
-        self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
-            sets
-        )
+        (
+            self.elements_include,
+            self.elements_exclude,
+            self.subsets_include,
+            self.subsets_exclude,
+        ) = self._make_data(sets)
 
     @staticmethod
     def _rows_to_sets(rows: Iterable) -> List[ExclusionSet]:
@@ -72,9 +80,7 @@ class ExclusionSetCoverProblem:
         """
         rows = list(zip(ids, sets_include, sets_exclude))
         sets = self._rows_to_sets(rows)
-        self.define_data(
-            sets
-        )
+        self.define_data(sets)
 
     def from_dataframe(self, df: pd.DataFrame):
         """
@@ -84,9 +90,7 @@ class ExclusionSetCoverProblem:
         """
         rows = list(df.itertuples(name="Row", index=False))
         sets = self._rows_to_sets(rows)
-        self.define_data(
-            sets
-        )
+        self.define_data(sets)
 
     @staticmethod
     def _calculate_set_cost(subsets_data, include_covered, exclude_covered):
@@ -151,7 +155,9 @@ class ExclusionSetCoverProblem:
                     f"Skipping over {len(skip_set_ids)} Sets already used in solution"
                 )
                 set_zip = zip(
-                    self.subsets_include.keys(), self.subsets_include.values(), self.subsets_exclude.values()
+                    self.subsets_include.keys(),
+                    self.subsets_include.values(),
+                    self.subsets_exclude.values(),
                 )
                 set_data = [
                     (set_id, incl, excl)
