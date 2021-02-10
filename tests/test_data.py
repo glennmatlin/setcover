@@ -1,3 +1,5 @@
+import pandas as pd
+
 # Include
 # ["Glenn", "Jeremy W", "Ben", "Victor", "Vijay"]
 
@@ -113,3 +115,5 @@ exclusion_data = [
         ],
     ),
 ]
+
+exclusion_df = pd.DataFrame(exclusion_data, columns =['set_id','set_include','set_exclude'])

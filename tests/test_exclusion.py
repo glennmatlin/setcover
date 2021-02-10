@@ -1,5 +1,6 @@
 from setcover.exclusion import ExclusionSetCoverProblem
 from tests.test_sets import exclusion_sets
+from tests.test_data import exclusion_df
 import logging
 
 logging.getLogger("py4j").setLevel(logging.ERROR)
@@ -9,6 +10,12 @@ log = logging.getLogger(__name__)
 class TestExclusion:
     def test_exclusion(self):
         exclusion_problem = ExclusionSetCoverProblem(exclusion_sets)
+        exclusion_problem.solve()
+        assert exclusion_problem.cover_solution == [("E50", 4.3333), ("B20", 2.0)]
+
+    def test_exclusion_from_df(self):
+        exclusion_problem = ExclusionSetCoverProblem()
+        exclusion_problem.from_dataframe(exclusion_df)
         exclusion_problem.solve()
         assert exclusion_problem.cover_solution == [("E50", 4.3333), ("B20", 2.0)]
 

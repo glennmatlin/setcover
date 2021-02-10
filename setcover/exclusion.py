@@ -73,7 +73,9 @@ class ExclusionSetCoverProblem:
         """
         rows = list(zip(ids, sets_include, sets_exclude))
         sets = self._rows_to_sets(rows)
-        self._make_data(sets)
+        self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
+            sets
+        )
 
     def from_dataframe(self, df: pd.DataFrame):
         """
@@ -83,7 +85,9 @@ class ExclusionSetCoverProblem:
         """
         rows = list(df.itertuples(name="Row", index=False))
         sets = self._rows_to_sets(rows)
-        self._make_data(sets)
+        self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
+            sets
+        )
 
     @staticmethod
     def _calculate_set_cost(subsets_data, include_covered, exclude_covered):
