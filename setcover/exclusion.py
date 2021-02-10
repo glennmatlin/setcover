@@ -24,10 +24,6 @@ class ExclusionSetCoverProblem:
         self.cover_solution = self.include_covered = self.exclude_covered = None
         self.elements_include = self.elements_exclude = self.subsets_include = self.subsets_exclude = None
 
-        # self. codes
-        # self. n codes
-        # self n include ids
-        # self n exclude ids
         if input_sets:
             log.info("Building data set with included data")
             self.elements_include, self.elements_exclude, self.subsets_include, self.subsets_exclude = self._make_data(
@@ -139,8 +135,8 @@ class ExclusionSetCoverProblem:
         coverage_goal = set(
             [item for sublist in self.subsets_include.values() for item in sublist]
         )
-        log.info(f"Total DX Codes: {len(set_ids)}")
-        with tqdm(total=len(set_ids), desc="Codes in Solution") as tqdm_codes, tqdm(
+        log.info(f"Number of Sets: {len(set_ids)}")
+        with tqdm(total=len(set_ids), desc="Sets Used in Solution") as tqdm_sets, tqdm(
             total=len(self.elements_include),
             desc="Set Coverage of Include Set",
         ) as tqdm_include, tqdm(
@@ -148,17 +144,17 @@ class ExclusionSetCoverProblem:
             desc="Set Coverage of Exclude Set",
         ) as tqdm_exclude:
             while (include_covered != coverage_goal) & (iteration_counter <= limit):
-                skip_codes = [code for code, cost in cover_solution]
+                skip_set_ids = [set_id for set_id, cost in cover_solution]
                 log.debug(
-                    f"Skipping over {len(skip_codes)} codes already used in solution"
+                    f"Skipping over {len(skip_set_ids)} Sets already used in solution"
                 )
                 set_zip = zip(
                     self.subsets_include.keys(), self.subsets_include.values(), self.subsets_exclude.values()
                 )
                 set_data = [
-                    (code, incl, excl)
-                    for code, incl, excl in set_zip
-                    if code not in skip_codes
+                    (set_id, incl, excl)
+                    for set_id, incl, excl in set_zip
+                    if set_id not in skip_set_ids
                 ]
                 n = len(set_data)
                 log.debug(f"Calculating cost for {n} sets")
@@ -191,7 +187,7 @@ class ExclusionSetCoverProblem:
                 # Append to our solution
                 cover_solution.append((min_set_id, min_set_cost))
                 iteration_counter += 1
-                tqdm_codes.update(iteration_counter)
+                tqdm_sets.update(iteration_counter)
                 log.info(
                     f"""Set found: {min_set_id}
                 Cost: {min_set_cost}
