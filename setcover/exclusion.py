@@ -128,7 +128,7 @@ class ExclusionSetCoverProblem:
     def solve(self, limit=float("inf")):
         log.info("Solving set coverage problem")
         # If elements don't cover problem -> invalid inputs for set cover problem
-        set_ids = set(self.subsets_include.keys()) # TODO Move this out of solve
+        set_ids = set(self.subsets_include.keys())  # TODO Move this out of solve
         log.info(f"Sets IDs: {set_ids}")
         all_elements = set(
             e for s in self.subsets_include.keys() for e in self.subsets_include[s]
@@ -152,11 +152,11 @@ class ExclusionSetCoverProblem:
         ) as tqdm_exclude:
             log.debug(f"Include Elements: {self.elements_include}")
             log.debug(f"Include Covered: {self.include_covered}")
-            while (len(self.include_covered) < len(self.elements_include)) & (len(self.cover_solution) < limit):
+            while (len(self.include_covered) < len(self.elements_include)) & (
+                len(self.cover_solution) < limit
+            ):
                 skip_set_ids = [set_id for set_id, cost in self.cover_solution]
-                log.info(
-                    f"Skipping over {len(skip_set_ids)} sets already in solution"
-                )
+                log.info(f"Skipping over {len(skip_set_ids)} sets already in solution")
                 set_zip = zip(
                     self.subsets_include.keys(),
                     self.subsets_include.values(),
@@ -214,7 +214,11 @@ class ExclusionSetCoverProblem:
         log.info(f"Final cover Solution: {self.cover_solution}")
 
 
-if __name__ == "__main__":
+def main():
     problem = ExclusionSetCoverProblem(exclusion_sets)
     problem.solve()
     log.info(problem.cover_solution)
+
+
+if __name__ == "__main__":
+    main()
