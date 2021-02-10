@@ -8,7 +8,7 @@ from multiprocessing import current_process
 from setcover.set import ExclusionSet
 import logging
 import concurrent.futures
-from typing import List, Dict, Set, Iterable
+from typing import List, Set, Iterable
 from tests.test_sets import exclusion_sets
 from itertools import repeat
 
@@ -19,7 +19,6 @@ log = logging.getLogger(__name__)
 # TODO: Implement better logging from cookbook https://docs.python.org/3/howto/logging-cookbook.html
 # TODO: logging to file that is written as the module executes
 # TODO: Cloudwatch on logging file
-
 # TODO: Lazy data type checking on __init__
 # TODO: Figure out why  __init__  `obj = obj = None` fails -- is it a pointer issue?
 
@@ -104,26 +103,25 @@ class ExclusionSetCoverProblem:
     def _calculate_set_cost(subsets_data, include_covered, exclude_covered):
         """
         Calculate the cost of adding the set to the problem solution
-        :param subsets_data:
-        :param include_covered:
-        :param exclude_covered:
-        :return:
         """
-        (set_id, include_elements, exclude_elements) = subsets_data
         process_id, process_name = (
             os.getpid(),
             current_process().name,
         )
-        log.info(f"Process ID: {process_id}")
-        log.info(f"Process Name: {process_name}")
-        new_include_elements = len(include_elements - include_covered)
-        new_exclude_elements = len(exclude_elements - exclude_covered)
+        log.info(f"""Process ID: {process_id}
+        Process Name: {process_name}""")
+        (set_id, include_elements, exclude_elements) = subsets_data
+        added_include_coverage = len(include_elements - include_covered)
+        added_exclude_coverage = len(exclude_elements - exclude_covered)
+        log.info(f"""Set ID: {process_id}
+        New Include Elements: {added_include_coverage}
+        New Exclude Elements: {added_exclude_coverage}""")
         # set may have same elements as already covered -> Check to avoid division by 0 error
-        if new_include_elements != 0:
-            cost_elem_ratio = new_exclude_elements / new_include_elements
+        if added_include_coverage != 0:
+            cost_elem_ratio = added_exclude_coverage / added_include_coverage
         else:
             cost_elem_ratio = float("inf")
-        return set_id, round(cost_elem_ratio, 4)
+        return set_id, round(cost_elem_ratio, 5)
 
     def solve(self, limit=float("inf")):
         log.info("Solving set coverage problem")
@@ -139,9 +137,6 @@ class ExclusionSetCoverProblem:
             raise Exception("Universe is incomplete")
 
         # track elements of problem covered
-        # coverage_goal = set(
-        #     [item for sublist in self.subsets_include.values() for item in sublist]
-        # )
         log.info(f"Number of Sets: {len(set_ids)}")
         with tqdm(total=len(set_ids), desc="Sets Used in Solution") as tqdm_sets, tqdm(
             total=len(self.elements_include),
@@ -150,8 +145,6 @@ class ExclusionSetCoverProblem:
             total=len(self.elements_exclude),
             desc="Set Coverage of Exclude Set",
         ) as tqdm_exclude:
-            log.debug(f"Include Elements: {self.elements_include}")
-            log.debug(f"Include Covered: {self.include_covered}")
             while (len(self.include_covered) < len(self.elements_include)) & (
                 len(self.cover_solution) < limit
             ):
