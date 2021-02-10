@@ -149,7 +149,7 @@ class ExclusionSetCoverProblem:
             total=len(self.elements_exclude),
             desc="Set Coverage of Exclude Set",
         ) as tqdm_exclude:
-            while (include_covered != coverage_goal) & (len(cover_solution) <= limit):
+            while (include_covered != coverage_goal) & (len(cover_solution) < limit):
                 skip_set_ids = [set_id for set_id, cost in cover_solution]
                 log.debug(
                     f"Skipping over {len(skip_set_ids)} Sets already used in solution"
