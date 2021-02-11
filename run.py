@@ -17,7 +17,8 @@ logging.basicConfig(
     filemode="w",
 )
 # Silence logging for backend services not needed
-silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio"]
+# TODO have a log for all the silenced modules but keep them out of console
+silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "numexpr"]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
