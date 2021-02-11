@@ -30,7 +30,7 @@ ch.setLevel(logging.ERROR)
 # Set a format which is simpler for console use
 ch.setFormatter(logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s"))
 # Create file handlers for info and debug logs
-fh = logging.FileHandler("run_debug.log")
+fh = logging.FileHandler("run.log")
 # Add handlers to logger
 log.addHandler(ch), log.addHandler(fh)
 
