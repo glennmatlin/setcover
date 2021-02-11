@@ -206,8 +206,8 @@ class ExclusionSetCoverProblem:
                 len(self.cover_solution) < limit
             ):
                 skip_set_ids = [set_id for set_id, _, _, _ in self.cover_solution]
-                log.info(f"Skip {len(skip_set_ids)} sets used in solution"
-                         f"Skip {len(inf_sets)} that provided no additional coverage")
+                log.info(f"Skip {len(skip_set_ids)} sets used in solution")
+                log.info(f"Skip {len(inf_sets)} that provide no additional coverage")
                 skip_set_ids += list(inf_sets)
                 set_zip = zip(
                     self.subsets_include.keys(),
