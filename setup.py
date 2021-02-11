@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="pyspark-setcover",
+    name="setcover",
     version="0.3.2",
     packages=find_packages(),
-    description="pyspark-setcover",
+    description="setcover",
     author="Glenn Matlin",
     author_email="glenn.matlin@gmail.com",
 )

@@ -1,4 +1,4 @@
-pyspark-setcover
+setcover
 ================
 
 ## Summary
@@ -46,7 +46,7 @@ miniconda3
 ```shell
 conda config --add channels conda-forge 
 conda config --set channel_priority strict 
-conda create -n pyspark-setcover -f environment.yml
+conda create -n setcover -f environment.yml
 ```
 
 ## Testing

@@ -2,11 +2,8 @@ appName: setcover
 logLevel: WARN
 
 # TODO Make PyYAML Constructors to use variables
-#RUN_ID: ""20210206"
-#S3_HOME: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/"
-#input_bucket: f"{S3_HOME}{RUN_ID}/merged_df.parquet"
-#output_bucket: f"{S3_HOME}{RUN_ID}/problem_solution.parquet"
-
+# TODO Replace with current date or hash
+run_id: "20211011"
 buckets:
   input: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/merged_df.parquet"
   output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/problem_solution.csv"

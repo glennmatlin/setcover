@@ -589,7 +589,7 @@ fig = px.line(
         "n_codes": "Number (N) ICD-10 DX Trigger Codes",
         "coverage_percent": "Percentage of Tokens Containing Trigger in DX",
     },
-    title="<b>pyspark-setcover: ExcludeSetProblem</b><br>Percent of Control Sample Patients Covered by Trigger Codes",
+    title="<b>setcover: ExcludeSetProblem</b><br>Percent of Control Sample Patients Covered by Trigger Codes",
 )
 fig.show()
 
@@ -742,7 +742,7 @@ fig = px.line(
         "n_codes": "Number (N) ICD-10 DX Trigger Codes",
         "coverage_percent": "Percentage of Tokens Containing Trigger in DX",
     },
-    title="<b>pyspark-setcover: ExcludeSetProblem</b><br>Percent of aHUS Positive Patients Covered by Trigger Codes",
+    title="<b>setcover: ExcludeSetProblem</b><br>Percent of aHUS Positive Patients Covered by Trigger Codes",
 )
 fig.show()
 
@@ -757,7 +757,7 @@ fig = px.line(
         "n_codes": "Number (N) ICD-10 DX Trigger Codes",
         "percent_diff": "Percentage Difference in Coverage from Additional Trigger Code",
     },
-    title="<b>pyspark-setcover: ExcludeSetProblem</b><br>Percentage Difference of aHUS Positive Patients Covered by Trigger Codes",
+    title="<b>setcover: ExcludeSetProblem</b><br>Percentage Difference of aHUS Positive Patients Covered by Trigger Codes",
 )
 
 
@@ -807,7 +807,7 @@ fig = px.line(
         "n_codes": "Number (N) ICD-10 DX Trigger Codes",
         "coverage_percent": "Percentage of Tokens Containing Trigger in DX",
     },
-    title="<b>pyspark-setcover: ExcludeSetProblem</b><br>Percent of Control Sample Patients Covered by Trigger Codes",
+    title="<b>setcover: ExcludeSetProblem</b><br>Percent of Control Sample Patients Covered by Trigger Codes",
 )
 fig.show()
 
@@ -840,7 +840,7 @@ fig.add_trace(
 
 # Add figure title
 fig.update_layout(
-    title_text="<b>pyspark-setcover: ExcludeSetProblem</b><br>Registry VS Control – Percentage Covered by Trigger Codes"
+    title_text="<b>setcover: ExcludeSetProblem</b><br>Registry VS Control – Percentage Covered by Trigger Codes"
 )
 
 # Set x-axis title
