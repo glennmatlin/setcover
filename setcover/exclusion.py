@@ -26,13 +26,13 @@ from itertools import repeat
 # TODO: Figure out why  __init__  `obj = obj = None` fails -- is it a pointer issue?
 
 # Logging
-logging.basicConfig(
+log = logging.getLogger(__name__)
+log.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
     datefmt="%m-%d %H:%M",
     filemode="w",
 )
-log = logging.getLogger(__name__)
 # Create stream handler which writes ERROR messages or higher to the sys.stderr
 ch = logging.StreamHandler()
 ch.setLevel(logging.ERROR)
