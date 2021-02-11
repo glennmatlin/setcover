@@ -265,15 +265,13 @@ class ExclusionSetCoverProblem:
                 tqdm_sets.update(1)
                 log.info(
                     f"""
-                    Set found: {min_set_id}
-                    Cost: {min_set_cost}
-                    New Coverage: {len(new_covered_inclusive)}
+                    Set ID: {min_set_id}
+                    Set Cost: {min_set_cost}
+                    New Set Coverage: {len(new_covered_inclusive)}
+                    Current Solution: {self.cover_solution}
                     """
                 )
-                log.debug(self.include_covered)
-                log.debug(self.exclude_covered)
-                log.debug(self.cover_solution)
-        log.info(f"Final cover Solution: {self.cover_solution}")
+        log.info(f"Final Solution: {self.cover_solution}")
 
 
 def main():
