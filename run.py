@@ -16,6 +16,7 @@ logging.basicConfig(
     datefmt="%m-%d %H:%M",
     filemode="w",
 )
+logging.getLogger("botocore").setLevel(logging.CRITICAL)
 log = logging.getLogger(__name__)
 # Create stream handler which writes ERROR messages or higher to the sys.stderr
 ch = logging.StreamHandler()
@@ -43,13 +44,17 @@ def make_data(input_path: str, filetype='parquet') -> List[ExclusionSet]:
     :param input_path: path to parquet data
     :return: data struct to be used set coverage problem
     """
+    log.info(f"Reading in data from {input_path}")
     if filetype == 'parquet':
         df = pd.read_parquet(input_path)
     else:
         raise TypeError
+    log.info(f"Data set loaded length of {len(input_path)}")
     df = df.query("rate_test>0.01")[
         ["code", "registry_ids", "control_ids"]
     ]
+    log.info(f"Filtered out codes with rate_test<=0.01 length is now {len(input_path)}")
+    log.info(f"Fixing issue with data")
     df["control_ids"] = (
         df["control_ids"].str.split(",").apply(lambda row: [id.strip() for id in row])
     )
@@ -57,15 +62,20 @@ def make_data(input_path: str, filetype='parquet') -> List[ExclusionSet]:
         df["registry_ids"].str.split(",").apply(lambda row: [id.strip() for id in row])
     )
     # TODO: Replace with .from_df
+    log.info(f"Final prep")
     rows = list(df.itertuples(name="Row", index=False))
     sets = ExclusionSetCoverProblem._rows_to_sets(rows)
     return sets
 
 
 def main():
+    log.info(f"Making data using input bucket")
     data = make_data(input_bucket)
+    log.info(f"Loading the data into problem")
     problem = ExclusionSetCoverProblem(data)
+    log.info(f"Solving problem")
     problem.solve(limit=problem_limit)
+    log.info(f"Exporting solution")
     exclusion_cover_solution = pd.Series(
         [code for code, _cost in problem.cover_solution]
     )
