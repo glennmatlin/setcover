@@ -4,7 +4,7 @@ from tqdm.auto import tqdm
 import pandas as pd
 from collections import OrderedDict
 import os
-from multiprocessing import current_process
+import multiprocessing
 from setcover.set import ExclusionSet
 import logging
 import concurrent.futures
@@ -12,30 +12,36 @@ from typing import List, Set, Iterable
 from tests.test_sets import exclusion_sets
 from itertools import repeat
 
-# Logging
-logging.basicConfig()
-log = logging.getLogger(__name__)
-# Create file handlers for info and debug logs
-info_fh, debug_fh = logging.FileHandler('info.log'), logging.FileHandler('debug.log')
-info_fh.setLevel(logging.INFO), debug_fh.setLevel(logging.DEBUG)
-# Create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-info_fh.setFormatter(formatter), debug_fh.setFormatter(formatter)
-# Add handler to logger
-log.addHandler(info_fh), log.addHandler(debug_fh)
-
 # Algorithm To Dos
 # TODO: Use additional logging handlers from standard library https://docs.python.org/3/library/logging.handlers.html
 # TODO: Implement better logging from cookbook https://docs.python.org/3/howto/logging-cookbook.html
-# TODO: Logging cookbook https://stackless.readthedocs.io/en/3.7-slp/howto/logging-cookbook.html
 # TODO: logging to file that is written as the module executes
 
 # Logging To Dos
-# TODO: Cloudwatch on logging file if I move to spark
+# TODO: Get root directory, make logs folder for logging/profiling output
+# ROOT_DIR = os.path.dirname(os.path.abspath("file.py"))
 
 # API To Dos
 # TODO: Lazy data type checking on __init__
 # TODO: Figure out why  __init__  `obj = obj = None` fails -- is it a pointer issue?
+
+# Logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+    datefmt="%m-%d %H:%M",
+    filemode="w",
+)
+log = logging.getLogger(__name__)
+# Create stream handler which writes ERROR messages or higher to the sys.stderr
+ch = logging.StreamHandler()
+ch.setLevel(logging.ERROR)
+# Set a format which is simpler for console use
+ch.setFormatter(logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s"))
+# Create file handlers for info and debug logs
+fh = logging.FileHandler("debug.log")
+# Add handlers to logger
+log.addHandler(ch), log.addHandler(fh)
 
 
 class ExclusionSetCoverProblem:
@@ -121,16 +127,20 @@ class ExclusionSetCoverProblem:
         """
         process_id, process_name = (
             os.getpid(),
-            current_process().name,
+            multiprocessing.current_process().name,
         )
-        log.info(f"""Process ID: {process_id}
-        Process Name: {process_name}""")
+        log.info(
+            f"""Process ID: {process_id}
+        Process Name: {process_name}"""
+        )
         (set_id, include_elements, exclude_elements) = subsets_data
         added_include_coverage = len(include_elements - include_covered)
         added_exclude_coverage = len(exclude_elements - exclude_covered)
-        log.info(f"""Set ID: {process_id}
+        log.info(
+            f"""Set ID: {process_id}
         New Include Elements: {added_include_coverage}
-        New Exclude Elements: {added_exclude_coverage}""")
+        New Exclude Elements: {added_exclude_coverage}"""
+        )
         # set may have same elements as already covered -> Check to avoid division by 0 error
         if added_include_coverage != 0:
             cost_elem_ratio = added_exclude_coverage / added_include_coverage
