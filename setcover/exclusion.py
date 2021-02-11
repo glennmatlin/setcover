@@ -45,7 +45,13 @@ log.addHandler(ch), log.addHandler(fh)
 
 
 class ExclusionSetCoverProblem:
+    """"""
+
     def __init__(self, input_sets=None):
+        """
+
+        :param input_sets:
+        """
         self.subsets_include = OrderedDict()
         self.subsets_exclude = OrderedDict()
         self.include_covered = set()
@@ -69,7 +75,7 @@ class ExclusionSetCoverProblem:
     ) -> object:
         """
 
-        :param sets: List of Named Tuples
+        :param sets:
         :return:
         """
         elements_include = set({})
@@ -85,6 +91,11 @@ class ExclusionSetCoverProblem:
         return elements_include, elements_exclude, subsets_include, subsets_exclude
 
     def _define_data(self, sets: List[ExclusionSet]):
+        """
+
+        :param sets:
+        :return:
+        """
         (
             self.elements_include,
             self.elements_exclude,
@@ -94,6 +105,11 @@ class ExclusionSetCoverProblem:
 
     @staticmethod
     def _rows_to_sets(rows: Iterable) -> List[ExclusionSet]:
+        """
+
+        :param rows:
+        :return:
+        """
         return [ExclusionSet(r[0], r[1], r[2]) for r in rows]
 
     def from_lists(
@@ -124,22 +140,31 @@ class ExclusionSetCoverProblem:
     def _calculate_set_cost(subsets_data, include_covered, exclude_covered):
         """
         Calculate the cost of adding the set to the problem solution
+
+        :param subsets_data:
+        :param include_covered:
+        :param exclude_covered:
+        :return:
         """
         process_id, process_name = (
             os.getpid(),
             multiprocessing.current_process().name,
         )
         log.info(
-            f"""Process ID: {process_id}
-        Process Name: {process_name}"""
+            f"""
+            Process ID: {process_id}
+            Process Name: {process_name}
+            """
         )
         (set_id, include_elements, exclude_elements) = subsets_data
         added_include_coverage = len(include_elements - include_covered)
         added_exclude_coverage = len(exclude_elements - exclude_covered)
         log.info(
-            f"""Set ID: {process_id}
-        New Include Elements: {added_include_coverage}
-        New Exclude Elements: {added_exclude_coverage}"""
+            f"""
+            Set ID: {set_id}
+            New Include Elements: {added_include_coverage}
+            New Exclude Elements: {added_exclude_coverage}
+            """
         )
         # set may have same elements as already covered -> Check to avoid division by 0 error
         if added_include_coverage != 0:
@@ -149,6 +174,11 @@ class ExclusionSetCoverProblem:
         return set_id, round(cost_elem_ratio, 5)
 
     def solve(self, limit=float("inf")):
+        """
+
+        :param limit:
+        :return:
+        """
         log.info("Solving set coverage problem")
         # If elements don't cover problem -> invalid inputs for set cover problem
         set_ids = set(self.subsets_include.keys())  # TODO Move this out of solve
@@ -221,10 +251,11 @@ class ExclusionSetCoverProblem:
                 self.cover_solution.append((min_set_id, min_set_cost))
                 tqdm_sets.update(1)
                 log.info(
-                    f"""Set found: {min_set_id}
-                Cost: {min_set_cost}
-                Added Coverage: {len(new_covered_inclusive)}
-                """
+                    f"""
+                    Set found: {min_set_id}
+                    Cost: {min_set_cost}
+                    Added Coverage: {len(new_covered_inclusive)}
+                    """
                 )
                 log.debug(self.include_covered)
                 log.debug(self.exclude_covered)
