@@ -17,7 +17,7 @@ logging.basicConfig(
     filemode="w",
 )
 # Silence logging for backend services not needed
-silenced_modules = ['botocore', 'aiobotocore', 's3fs', 'fsspec']
+silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio"]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
@@ -51,7 +51,9 @@ def make_data(input_path: str, filetype="parquet") -> List[ExclusionSet]:
     """
     log.info(f"Reading in data from {input_path}")
     if filetype == "parquet":
-        df = pd.read_parquet(input_path, columns=["code", "registry_ids", "control_ids", "rate_test"])
+        df = pd.read_parquet(
+            input_path, columns=["code", "registry_ids", "control_ids", "rate_test"]
+        )
     else:
         raise TypeError
     log.info(f"Data set loaded length of {len(input_path)}")

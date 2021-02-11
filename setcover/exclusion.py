@@ -266,6 +266,7 @@ class ExclusionSetCoverProblem:
 def main():
     log.info("Importing data to problem")
     from tests.test_sets import exclusion_sets
+
     problem = ExclusionSetCoverProblem(exclusion_sets)
     log.info("Finding solutiont to problem")
     problem.solve()
