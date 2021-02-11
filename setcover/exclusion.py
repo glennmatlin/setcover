@@ -12,11 +12,6 @@ from typing import List, Set, Iterable
 from itertools import repeat
 import numpy as np
 
-# Algorithm To Dos
-# TODO: Use additional logging handlers from standard library https://docs.python.org/3/library/logging.handlers.html
-# TODO: Implement better logging from cookbook https://docs.python.org/3/howto/logging-cookbook.html
-# TODO: logging to file that is written as the module executes
-
 # Logging To Dos
 # TODO: Get root directory, make logs folder for logging/profiling output
 # ROOT_DIR = os.path.dirname(os.path.abspath("file.py"))
