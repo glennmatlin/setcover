@@ -9,6 +9,6 @@ logLevel: WARN
 
 buckets:
   input: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210206/merged_df.parquet"
-  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210206/problem_solution.parquet"
+  output: "s3://kh-data/glenn_sandbox/tmp/20210210/problem_solution.csv"
 problem:
   limit: 10

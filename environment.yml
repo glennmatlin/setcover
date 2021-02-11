@@ -10,6 +10,7 @@ dependencies:
   - python=3.8.5
   - setuptools=52.0.0
   - tqdm=4.56.0
+  - s3fs
 #    get_ipython().system('python -m pip install --upgrade plotly>=4.9 black #kaleido orca')
 #    get_ipython().system('python -m pip install tqdm')
 #    get_ipython().system('python -m pip install pyspark')

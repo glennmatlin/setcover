@@ -10,8 +10,7 @@ import logging
 import confuse
 
 """Logging"""
-log = logging.getLogger(__name__)
-log.basicConfig(
+logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
     datefmt="%m-%d %H:%M",
@@ -30,20 +29,25 @@ log.addHandler(ch), log.addHandler(fh)
 
 
 """Load configuration from .yaml file."""
-config = confuse.Configuration('setcover', __name__)
-config.set_file('config.yaml')
-input_bucket = config['buckets']['input'].get(str)
-output_bucket = config['buckets']['input'].get(str)
-problem_limit = config['problem']['limit'].get(int)
+config = confuse.Configuration("setcover", __name__)
+config.set_file("config.yaml")
+input_bucket = config["buckets"]["input"].get(str)
+output_bucket = config["buckets"]["input"].get(str)
+problem_limit = config["problem"]["limit"].get(int)
 print(input_bucket, output_bucket)
 
-def make_data(input_bucket: str) -> List[ExclusionSet]:
+
+def make_data(input_path: str, filetype='parquet') -> List[ExclusionSet]:
     """
     prepares data to be used in set cover problem using pandas
-    :param input_bucket: s3 path of data
+    :param input_path: path to parquet data
     :return: data struct to be used set coverage problem
     """
-    df = pd.read_parquet(input_bucket).query("rate_test>0.01")[
+    if filetype == 'parquet':
+        df = pd.read_parquet(input_path)
+    else:
+        raise TypeError
+    df = df.query("rate_test>0.01")[
         ["code", "registry_ids", "control_ids"]
     ]
     df["control_ids"] = (
@@ -57,24 +61,28 @@ def make_data(input_bucket: str) -> List[ExclusionSet]:
     sets = ExclusionSetCoverProblem._rows_to_sets(rows)
     return sets
 
+
 def main():
     data = make_data(input_bucket)
     problem = ExclusionSetCoverProblem(data)
     problem.solve(limit=problem_limit)
-    exclusion_cover_solution = pd.Series([code for code, _cost in problem.cover_solution])
-    exclusion_cover_solution.to_csv(output_bucket.replace("parquet", "csv"))
+    exclusion_cover_solution = pd.Series(
+        [code for code, _cost in problem.cover_solution]
+    )
+    exclusion_cover_solution.to_csv(output_bucket)
 
 
 if __name__ == "__main__":
-    import cProfile
-
-    cProfile.run("main()", "run_output.dat")
-
-    import pstats
-
-    with open("run_output_time.txt", "w") as f:
-        p = pstats.Stats("run_output.dat", stream=f)
-        p.sort_stats("time").print_stats()
-    with open("run_output_calls.txt", "w") as f:
-        p = pstats.Stats("run_output.dat", stream=f)
-        p.sort_stats("calls").print_stats()
+    main()
+    # import cProfile
+    #
+    # cProfile.run("main()", "run_output.dat")
+    #
+    # import pstats
+    #
+    # with open("run_output_time.txt", "w") as f:
+    #     p = pstats.Stats("run_output.dat", stream=f)
+    #     p.sort_stats("time").print_stats()
+    # with open("run_output_calls.txt", "w") as f:
+    #     p = pstats.Stats("run_output.dat", stream=f)
+    #     p.sort_stats("calls").print_stats()
