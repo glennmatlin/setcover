@@ -12,7 +12,7 @@ S3_HOME = "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/"
 
 claims_bucket = f"{S3_HOME}20201203/target_claims_df.parquet"
 control_bucket = (
-    f"{S3_HOME}20201209/stratified_claims_control_sample_ahus_20210106.parquet/"
+    f"{S3_HOME}20201209/stratified_claims_control_sample_ahus_20210210.parquet/"
 )
 reference_bucket = f"{S3_HOME}20201209/reference_df.parquet/"
 cohort_bucket = f"{S3_HOME}20201210/target_cohort_df.parquet/"

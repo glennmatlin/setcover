@@ -8,7 +8,7 @@ logLevel: WARN
 #output_bucket: f"{S3_HOME}{RUN_ID}/problem_solution.parquet"
 
 buckets:
-  input: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210206/merged_df.parquet"
-  output: "s3://kh-data/glenn_sandbox/tmp/20210210/problem_solution.csv"
+  input: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/merged_df.parquet"
+  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/problem_solution.csv"
 problem:
   limit: 10
