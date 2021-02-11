@@ -51,11 +51,11 @@ def make_data(input_path: str, filetype="parquet") -> List[ExclusionSet]:
     """
     log.info(f"Reading in data from {input_path}")
     if filetype == "parquet":
-        df = pd.read_parquet(input_path, columns=["code", "registry_ids", "control_ids"])
+        df = pd.read_parquet(input_path, columns=["code", "registry_ids", "control_ids", "rate_test"])
     else:
         raise TypeError
     log.info(f"Data set loaded length of {len(input_path)}")
-    df = df.query("rate_test>0.01")
+    df = df.query("rate_test>0.01")[["code", "registry_ids", "control_ids"]]
     log.info(f"Filtered out codes with rate_test<=0.01 length is now {len(input_path)}")
     log.info(f"Fixing issue with data")
     df["control_ids"] = (
