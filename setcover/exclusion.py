@@ -9,7 +9,6 @@ from setcover.set import ExclusionSet
 import logging
 import concurrent.futures
 from typing import List, Set, Iterable
-from tests.test_sets import exclusion_sets
 from itertools import repeat
 
 # Algorithm To Dos
@@ -150,7 +149,7 @@ class ExclusionSetCoverProblem:
             os.getpid(),
             multiprocessing.current_process().name,
         )
-        log.info(
+        log.debug(
             f"""
             Process ID: {process_id}
             Process Name: {process_name}
@@ -159,19 +158,20 @@ class ExclusionSetCoverProblem:
         (set_id, include_elements, exclude_elements) = subsets_data
         added_include_coverage = len(include_elements - include_covered)
         added_exclude_coverage = len(exclude_elements - exclude_covered)
-        log.info(
+        # set may have same elements as already covered -> Check to avoid division by 0 error
+        if added_include_coverage != 0:
+            set_cost = added_exclude_coverage / added_include_coverage
+        else:
+            set_cost = float("inf")
+        log.debug(
             f"""
             Set ID: {set_id}
+            Set Cost: {set_cost}
             New Include Elements: {added_include_coverage}
             New Exclude Elements: {added_exclude_coverage}
             """
         )
-        # set may have same elements as already covered -> Check to avoid division by 0 error
-        if added_include_coverage != 0:
-            cost_elem_ratio = added_exclude_coverage / added_include_coverage
-        else:
-            cost_elem_ratio = float("inf")
-        return set_id, round(cost_elem_ratio, 5)
+        return set_id, round(set_cost, 5)
 
     def solve(self, limit=float("inf")):
         """
@@ -182,7 +182,7 @@ class ExclusionSetCoverProblem:
         log.info("Solving set coverage problem")
         # If elements don't cover problem -> invalid inputs for set cover problem
         set_ids = set(self.subsets_include.keys())  # TODO Move this out of solve
-        log.info(f"Sets IDs: {set_ids}")
+        log.debug(f"Sets IDs: {set_ids}")
         all_elements = set(
             e for s in self.subsets_include.keys() for e in self.subsets_include[s]
         )
@@ -192,7 +192,7 @@ class ExclusionSetCoverProblem:
             raise Exception("Universe is incomplete")
 
         # track elements of problem covered
-        log.info(f"Number of Sets: {len(set_ids)}")
+        log.info(f"Total number of Sets: {len(set_ids)}")
         with tqdm(total=len(set_ids), desc="Sets Used in Solution") as tqdm_sets, tqdm(
             total=len(self.elements_include),
             desc="Set Coverage of Include Set",
@@ -254,7 +254,7 @@ class ExclusionSetCoverProblem:
                     f"""
                     Set found: {min_set_id}
                     Cost: {min_set_cost}
-                    Added Coverage: {len(new_covered_inclusive)}
+                    New Coverage: {len(new_covered_inclusive)}
                     """
                 )
                 log.debug(self.include_covered)
@@ -264,9 +264,11 @@ class ExclusionSetCoverProblem:
 
 
 def main():
+    log.info("Importing data to problem")
+    from tests.test_sets import exclusion_sets
     problem = ExclusionSetCoverProblem(exclusion_sets)
+    log.info("Finding solutiont to problem")
     problem.solve()
-    log.info(problem.cover_solution)
 
 
 if __name__ == "__main__":
