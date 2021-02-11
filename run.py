@@ -16,9 +16,11 @@ logging.basicConfig(
     datefmt="%m-%d %H:%M",
     filemode="w",
 )
-# Supress botocore logging
-logging.getLogger("botocore").setLevel(logging.CRITICAL)
-logging.getLogger("aiobotocore").setLevel(logging.CRITICAL)
+# Silence logging for backend services not needed
+silenced_modules = ['botocore', 'aiobotocore', 's3fs', 'fsspec']
+for module in silenced_modules:
+    logging.getLogger(module).setLevel(logging.CRITICAL)
+
 log = logging.getLogger(__name__)
 # Create stream handler which writes ERROR messages or higher to the sys.stderr
 ch = logging.StreamHandler()
