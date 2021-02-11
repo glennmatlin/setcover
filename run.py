@@ -21,7 +21,7 @@ silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio"]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
-logging.getLogger('setcover.exclusion').setLevel(logging.INFO)
+logging.getLogger("setcover.exclusion").setLevel(logging.INFO)
 
 log = logging.getLogger(__name__)
 # Create stream handler which writes ERROR messages or higher to the sys.stderr
@@ -83,8 +83,14 @@ def main():
     log.info(f"Solving problem")
     problem.solve(limit=problem_limit)
     log.info(f"Exporting solution")
-    exclusion_cover_solution = pd.Series(
-        [code for code, _cost in problem.cover_solution]
+    exclusion_cover_solution = pd.DataFrame(
+        problem.cover_solution,
+        columns=[
+            "set_id",
+            "set_cost",
+            "new_covered_inclusive",
+            "new_covered_exclusive",
+        ],
     )
     exclusion_cover_solution.to_csv(output_bucket)
 

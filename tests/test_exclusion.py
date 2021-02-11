@@ -11,13 +11,19 @@ class TestExclusion:
     def test_exclusion(self):
         exclusion_problem = ExclusionSetCoverProblem(exclusion_sets)
         exclusion_problem.solve()
-        assert exclusion_problem.cover_solution == [("E50", 4.33333, 3, 13), ("B20", 2.0, 2, 4)]
+        assert exclusion_problem.cover_solution == [
+            ("E50", 4.33333, 3, 13),
+            ("B20", 2.0, 2, 4),
+        ]
 
     def test_exclusion_from_df(self):
         exclusion_problem = ExclusionSetCoverProblem()
         exclusion_problem.from_dataframe(exclusion_df)
         exclusion_problem.solve()
-        assert exclusion_problem.cover_solution == [("E50", 4.33333, 3, 13), ("B20", 2.0, 2, 4)]
+        assert exclusion_problem.cover_solution == [
+            ("E50", 4.33333, 3, 13),
+            ("B20", 2.0, 2, 4),
+        ]
 
 
 # ({'Jeremy W', 'Ben', 'Glenn', 'Vijay', 'Victor'},

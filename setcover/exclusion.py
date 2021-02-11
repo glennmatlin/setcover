@@ -236,7 +236,9 @@ class ExclusionSetCoverProblem:
                 min_set_id, min_set_cost = min(results, key=lambda t: t[1])
 
                 # if any sets return as float("inf") we should stop checking them
-                inf_sets |= set([set_id for set_id, set_cost in results if np.isinf(set_cost)])
+                inf_sets |= set(
+                    [set_id for set_id, set_cost in results if np.isinf(set_cost)]
+                )
                 min_set_include, min_set_exclude = (
                     self.subsets_include[min_set_id],
                     self.subsets_exclude[min_set_id],
@@ -252,7 +254,14 @@ class ExclusionSetCoverProblem:
                 self.include_covered |= new_covered_inclusive
                 self.exclude_covered |= new_covered_exclusive
                 # Append to our solution
-                self.cover_solution.append((min_set_id, min_set_cost, len(new_covered_inclusive), len(new_covered_exclusive)))
+                self.cover_solution.append(
+                    (
+                        min_set_id,
+                        min_set_cost,
+                        len(new_covered_inclusive),
+                        len(new_covered_exclusive),
+                    )
+                )
                 tqdm_sets.update(1)
                 log.info(
                     f"""
