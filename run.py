@@ -16,7 +16,9 @@ logging.basicConfig(
     datefmt="%m-%d %H:%M",
     filemode="w",
 )
+# Supress botocore logging
 logging.getLogger("botocore").setLevel(logging.CRITICAL)
+logging.getLogger("aiobotocore").setLevel(logging.CRITICAL)
 log = logging.getLogger(__name__)
 # Create stream handler which writes ERROR messages or higher to the sys.stderr
 ch = logging.StreamHandler()
@@ -83,16 +85,15 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    # import cProfile
-    #
-    # cProfile.run("main()", "run_output.dat")
-    #
-    # import pstats
-    #
-    # with open("run_output_time.txt", "w") as f:
-    #     p = pstats.Stats("run_output.dat", stream=f)
-    #     p.sort_stats("time").print_stats()
-    # with open("run_output_calls.txt", "w") as f:
-    #     p = pstats.Stats("run_output.dat", stream=f)
-    #     p.sort_stats("calls").print_stats()
+    import cProfile
+
+    cProfile.run("main()", "run_output.dat")
+
+    import pstats
+
+    with open("run_output_time.txt", "w") as f:
+        p = pstats.Stats("run_output.dat", stream=f)
+        p.sort_stats("time").print_stats()
+    with open("run_output_calls.txt", "w") as f:
+        p = pstats.Stats("run_output.dat", stream=f)
+        p.sort_stats("calls").print_stats()
