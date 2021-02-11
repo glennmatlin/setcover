@@ -5,7 +5,7 @@ import pandas as pd
 
 # Exclude
 # ["Prestinario", "Kamalesh", "Young", "Alex", "Andrea", "Andrew", "Andrey", "Youzhi",
-# "Doug", "Daniel", "Eric","Earnest", "Ethan", "Haroon", 'Justin', "Jean", "Jeremy K"]
+# "Doug", "Daniel", "Eric", "Ernest", "Ethan", "Haroon", 'Justin', "Jean", "Jeremy K"]
 
 weighted_data = (
     ("A10", ["Glenn", "Vijay"], 100.0),
@@ -37,7 +37,7 @@ exclusion_data = [
         "B20",
         ["Jeremy W", "Ben"],
         [
-            "Earnest",
+            "Ernest",
             "Daniel",
             "Andrew",
             "Alex",
@@ -63,7 +63,7 @@ exclusion_data = [
             "Eric",
             "Jeremy K",
             "Andrea",
-            "Earnest",
+            "Ernest",
             "Alex",
             "Doug",
             "Young",
@@ -84,7 +84,7 @@ exclusion_data = [
             "Alex",
             "Youzhi",
             "Justin",
-            "Earnest",
+            "Ernest",
             "Prestinario",
             "Young",
             "Haroon",
