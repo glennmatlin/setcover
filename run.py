@@ -39,7 +39,7 @@ log.addHandler(ch), log.addHandler(fh)
 config = confuse.Configuration("setcover", __name__)
 config.set_file("config.yaml")
 input_bucket = config["buckets"]["input"].get(str)
-output_bucket = config["buckets"]["input"].get(str)
+output_bucket = config["buckets"]["output"].get(str)
 problem_limit = config["problem"]["limit"].get(int)
 print(input_bucket, output_bucket)
 

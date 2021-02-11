@@ -203,7 +203,7 @@ class ExclusionSetCoverProblem:
             while (len(self.include_covered) < len(self.elements_include)) & (
                 len(self.cover_solution) < limit
             ):
-                skip_set_ids = [set_id for set_id, cost in self.cover_solution]
+                skip_set_ids = [set_id for set_id, _, _, _ in self.cover_solution]
                 log.info(f"Skipping over {len(skip_set_ids)} sets already in solution")
                 set_zip = zip(
                     self.subsets_include.keys(),
@@ -248,7 +248,7 @@ class ExclusionSetCoverProblem:
                 self.include_covered |= new_covered_inclusive
                 self.exclude_covered |= new_covered_exclusive
                 # Append to our solution
-                self.cover_solution.append((min_set_id, min_set_cost))
+                self.cover_solution.append((min_set_id, min_set_cost, len(new_covered_inclusive), len(new_covered_exclusive)))
                 tqdm_sets.update(1)
                 log.info(
                     f"""
