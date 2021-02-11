@@ -12,12 +12,22 @@ from typing import List, Set, Iterable
 from tests.test_sets import exclusion_sets
 from itertools import repeat
 
+# Logging
 logging.basicConfig()
 log = logging.getLogger(__name__)
+# Create file handlers for info and debug logs
+info_fh, debug_fh = logging.FileHandler('info.log'), logging.FileHandler('debug.log')
+info_fh.setLevel(logging.INFO), debug_fh.setLevel(logging.DEBUG)
+# Create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+info_fh.setFormatter(formatter), debug_fh.setFormatter(formatter)
+# Add handler to logger
+log.addHandler(info_fh), log.addHandler(debug_fh)
 
 # Algorithm To Dos
 # TODO: Use additional logging handlers from standard library https://docs.python.org/3/library/logging.handlers.html
 # TODO: Implement better logging from cookbook https://docs.python.org/3/howto/logging-cookbook.html
+# TODO: Logging cookbook https://stackless.readthedocs.io/en/3.7-slp/howto/logging-cookbook.html
 # TODO: logging to file that is written as the module executes
 
 # Logging To Dos
