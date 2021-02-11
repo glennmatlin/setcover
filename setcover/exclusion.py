@@ -201,13 +201,14 @@ class ExclusionSetCoverProblem:
             total=len(self.elements_exclude),
             desc="Set Coverage of Exclude Set",
         ) as tqdm_exclude:
-            inf_sets = []
+            inf_sets = set()
             while (len(self.include_covered) < len(self.elements_include)) & (
                 len(self.cover_solution) < limit
             ):
                 skip_set_ids = [set_id for set_id, _, _, _ in self.cover_solution]
-                skip_set_ids += inf_sets
-                log.info(f"Skipping over {len(skip_set_ids)} sets already in solution")
+                log.info(f"Skip {len(skip_set_ids)} sets used in solution"
+                         f"Skip {len(inf_sets)} that provided no additional coverage")
+                skip_set_ids += list(inf_sets)
                 set_zip = zip(
                     self.subsets_include.keys(),
                     self.subsets_include.values(),
@@ -240,7 +241,7 @@ class ExclusionSetCoverProblem:
                 min_set_id, min_set_cost = min(results, key=lambda t: t[1])
 
                 # if any sets return as float("inf") we should stop checking them
-                inf_sets += [set_id for set_id, set_cost in results if np.isinf(set_cost)]
+                inf_sets |= set([set_id for set_id, set_cost in results if np.isinf(set_cost)])
                 min_set_include, min_set_exclude = (
                     self.subsets_include[min_set_id],
                     self.subsets_exclude[min_set_id],

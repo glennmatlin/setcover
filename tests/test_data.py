@@ -75,7 +75,7 @@ exclusion_data = [
     ),
     (
         "D40",
-        ["Glenn", "Ben"],
+        [],
         [
             "Andrea",
             "Andrey",
