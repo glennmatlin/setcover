@@ -241,6 +241,8 @@ class ExclusionSetCoverProblem:
                 )
                 # Find the new elements we covered
                 new_covered_inclusive = min_set_include.difference(self.include_covered)
+                if len(new_covered_inclusive) <= 1:
+                    break
                 new_covered_exclusive = min_set_exclude.difference(self.exclude_covered)
                 tqdm_include.update(len(new_covered_inclusive))
                 tqdm_exclude.update(len(new_covered_exclusive))
