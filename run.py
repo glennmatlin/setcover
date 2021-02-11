@@ -21,6 +21,8 @@ silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio"]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
+logging.getLogger('setcover.exclusion').setLevel(logging.INFO)
+
 log = logging.getLogger(__name__)
 # Create stream handler which writes ERROR messages or higher to the sys.stderr
 ch = logging.StreamHandler()
