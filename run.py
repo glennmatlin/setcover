@@ -16,8 +16,8 @@ logging.basicConfig(
     datefmt="%m-%d %H:%M",
     filemode="w",
 )
+# TODO Make sure to log to file all silenced modules but silent in console
 # Silence logging for backend services not needed
-# TODO have a log for all the silenced modules but keep them out of console
 silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "numexpr"]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
@@ -76,6 +76,7 @@ def make_data(input_path: str, filetype="parquet") -> List[ExclusionSet]:
     return sets
 
 
+# TODO Mock s3 data objects for testing
 def main():
     log.info(f"Making data using input bucket")
     data = make_data(input_bucket)
