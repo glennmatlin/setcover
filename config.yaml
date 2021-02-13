@@ -1,0 +1,11 @@
+appName: setcover
+logLevel: WARN
+
+# TODO Make PyYAML Constructors to use variables
+# TODO Replace with current date or hash
+run_id: "20211011"
+buckets:
+  input: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/merged_df.parquet"
+  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/problem_solution.csv"
+problem:
+  limit: 10

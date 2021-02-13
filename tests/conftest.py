@@ -11,7 +11,7 @@ def spark_fixture():
     spark = (
         SparkSession.builder.config(conf=conf)
         .master("local")
-        .appName("pyspark-setcover")
+        .appName("setcover")
         .getOrCreate()
     )
     spark.sparkContext.setLogLevel("OFF")

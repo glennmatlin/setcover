@@ -1,9 +1,11 @@
+import pandas as pd
+
 # Include
 # ["Glenn", "Jeremy W", "Ben", "Victor", "Vijay"]
 
 # Exclude
 # ["Prestinario", "Kamalesh", "Young", "Alex", "Andrea", "Andrew", "Andrey", "Youzhi",
-# "Doug", "Daniel", "Eric","Earnest", "Ethan", "Haroon", 'Justin', "Jean", "Jeremy K"]
+# "Doug", "Daniel", "Eric", "Ernest", "Ethan", "Haroon", 'Justin', "Jean", "Jeremy K"]
 
 weighted_data = (
     ("A10", ["Glenn", "Vijay"], 100.0),
@@ -35,7 +37,7 @@ exclusion_data = [
         "B20",
         ["Jeremy W", "Ben"],
         [
-            "Earnest",
+            "Ernest",
             "Daniel",
             "Andrew",
             "Alex",
@@ -61,7 +63,7 @@ exclusion_data = [
             "Eric",
             "Jeremy K",
             "Andrea",
-            "Earnest",
+            "Ernest",
             "Alex",
             "Doug",
             "Young",
@@ -73,7 +75,7 @@ exclusion_data = [
     ),
     (
         "D40",
-        ["Glenn", "Ben"],
+        [],
         [
             "Andrea",
             "Andrey",
@@ -82,7 +84,7 @@ exclusion_data = [
             "Alex",
             "Youzhi",
             "Justin",
-            "Earnest",
+            "Ernest",
             "Prestinario",
             "Young",
             "Haroon",
@@ -113,3 +115,7 @@ exclusion_data = [
         ],
     ),
 ]
+
+exclusion_df = pd.DataFrame(
+    exclusion_data, columns=["set_id", "set_include", "set_exclude"]
+)

@@ -1,7 +1,7 @@
-name: /Users/glennmatlin/dev/pyspark-setcover/.env
+name: setcover
 channels:
-  - conda-forge
   - defaults
+  - conda-forge
 dependencies:
   - pandas=1.2.1
   - pip=20.3.3
@@ -10,3 +10,8 @@ dependencies:
   - python=3.8.5
   - setuptools=52.0.0
   - tqdm=4.56.0
+  - s3fs
+  - fsspec
+  - fastparquet
+# pip:
+  # --upgrade --no-deps --force-reinstall git+https://github.com/glennmatlin/setcover.git@ec2'
