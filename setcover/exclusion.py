@@ -49,11 +49,11 @@ class ExclusionSetCoverProblem:
         """
         self.subsets_include = OrderedDict()
         self.subsets_exclude = OrderedDict()
-        self.include_covered = set()
-        self.exclude_covered = set()
         self.elements_include = set()
         self.elements_exclude = set()
         self.cover_solution = []
+        self.include_covered = set()
+        self.exclude_covered = set()
 
         if input_sets:
             log.info("Building data set with included data")
@@ -84,6 +84,19 @@ class ExclusionSetCoverProblem:
             elements_include |= set(subset_include)
             elements_exclude |= set(subset_exclude)
         return elements_include, elements_exclude, subsets_include, subsets_exclude
+
+    def _old_define_data(self, sets: List[ExclusionSet]):
+        """
+
+        :param sets:
+        :return:
+        """
+        (
+            self.elements_include,
+            self.elements_exclude,
+            self.subsets_include,
+            self.subsets_exclude,
+        ) = self._make_data(sets)
 
     def _define_data(self, sets: List[ExclusionSet]):
         """
@@ -121,7 +134,7 @@ class ExclusionSetCoverProblem:
         sets = self._rows_to_sets(rows)
         self._define_data(sets)
 
-    def from_dataframe(self, df: pd.DataFrame):
+    def _old_from_dataframe(self, df: pd.DataFrame):
         """
         Used to import Pandas DataFrames
         :param df:
@@ -130,6 +143,17 @@ class ExclusionSetCoverProblem:
         rows = list(df.itertuples(name="Row", index=False))
         sets = self._rows_to_sets(rows)
         self._define_data(sets)
+
+    def from_dataframe(self, df: pd.DataFrame):
+        """
+        Used to import Pandas DataFrames
+        :param df:
+        :return:
+        """
+        rows = list(df.itertuples(name="Row", index=False))
+        sets = self._rows_to_sets(rows)
+        vectors = self._sets_to_vectors(sets)
+        self._define_data(vectors)
 
     @staticmethod
     def _calculate_set_cost(subsets_data, include_covered, exclude_covered):
