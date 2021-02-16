@@ -1,16 +1,20 @@
 #!/usr/bin/python
 
-from tqdm.auto import tqdm
-import pandas as pd
-from collections import OrderedDict
-import os
-import multiprocessing
-from setcover.set import ExclusionSet
-import logging
 import concurrent.futures
-from typing import List, Set, Iterable
+import logging
+import multiprocessing
+import os
+from collections import OrderedDict
 from itertools import repeat
+from typing import Dict, Iterable, List, Set
+
 import numpy as np
+import pandas as pd
+from tqdm.auto import tqdm
+
+from setcover import ExclusionSetCoverProblem
+from setcover.set import ExclusionSet
+from setcover.utils import flatten_list, flatten_set
 
 # Logging To Dos
 # TODO: Get root directory, make logs folder for logging/profiling output
@@ -54,6 +58,25 @@ class ExclusionSetCoverProblem:
         self.cover_solution = []
         self.include_covered = set()
         self.exclude_covered = set()
+        '''
+        before ETL
+        self.inclusive_n_total, self.exclusive_n_total = list(map(lambda item: df.iloc[0][item], ('n_total_test','n_total_control')))
+        
+        after ETL
+        self.include_elements, self.exclude_elements = map(flatten_nested_sets, (df.set_include.to_list(), df.set_exclude.to_list()))
+        self.n_include, self.n_exclude = len(include_elements), len(exclude_elements)
+        self.n_total = n_include + n_exclude
+        
+        self.token_idx_map = {}
+        self.idx_token_map = reverse_dictionary(token_idx_map)
+        
+        self.label_array = np.concatenate([np.ones(n_include), np.zeros(n_exclude)]).astype('?')
+        self.subset_array_dtypes = np.dtype([('set_id', ('S7')), ('set_array', '?', (1, n_total))])
+        self.subset_arrays = np.rec.array(df.apply(lambda row: make_subset_array(row), axis=1).to_list(), subset_array_dtypes)
+        
+        self.cover_array = np.zeros(len(label_array)).astype('?')
+        '''
+
 
         if input_sets:
             log.info("Building data set with included data")
@@ -85,19 +108,6 @@ class ExclusionSetCoverProblem:
             elements_exclude |= set(subset_exclude)
         return elements_include, elements_exclude, subsets_include, subsets_exclude
 
-    def _old_define_data(self, sets: List[ExclusionSet]):
-        """
-
-        :param sets:
-        :return:
-        """
-        (
-            self.elements_include,
-            self.elements_exclude,
-            self.subsets_include,
-            self.subsets_exclude,
-        ) = self._make_data(sets)
-
     def _define_data(self, sets: List[ExclusionSet]):
         """
 
@@ -111,14 +121,8 @@ class ExclusionSetCoverProblem:
             self.subsets_exclude,
         ) = self._make_data(sets)
 
-    @staticmethod
-    def _rows_to_sets(rows: Iterable) -> List[ExclusionSet]:
-        """
-
-        :param rows:
-        :return:
-        """
-        return [ExclusionSet(r[0], r[1], r[2]) for r in rows]
+    def from_vectors(self):
+        pass
 
     def from_lists(
         self, ids: List[str], sets_include: List[Set[str]], sets_exclude: List[Set[str]]
@@ -131,16 +135,6 @@ class ExclusionSetCoverProblem:
         :return:
         """
         rows = list(zip(ids, sets_include, sets_exclude))
-        sets = self._rows_to_sets(rows)
-        self._define_data(sets)
-
-    def _old_from_dataframe(self, df: pd.DataFrame):
-        """
-        Used to import Pandas DataFrames
-        :param df:
-        :return:
-        """
-        rows = list(df.itertuples(name="Row", index=False))
         sets = self._rows_to_sets(rows)
         self._define_data(sets)
 

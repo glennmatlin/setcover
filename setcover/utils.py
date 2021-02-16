@@ -1,4 +1,4 @@
-from typing import List, Iterable, Set
+from typing import Iterable, List, Set
 
 
 def flatten_list(nested_list: List[object]) -> List[object]:

@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
+from collections import OrderedDict
+
 import pandas as pd
 from tqdm.auto import tqdm
-from collections import OrderedDict
 
 from .set import WeightedSet
 

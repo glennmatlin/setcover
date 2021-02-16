@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # # Set Cover Optimization of Trigger Codes
 
+import logging
+from typing import List
+
+import confuse
 # ## Imports
 import pandas as pd
+
 from setcover.exclusion import ExclusionSetCoverProblem
 from setcover.set import ExclusionSet
-from typing import List
-import logging
-import confuse
 
 """Logging"""
 logging.basicConfig(
@@ -61,7 +63,7 @@ def make_data(input_path: str, filetype="parquet") -> List[ExclusionSet]:
         raise TypeError
     log.info(f"Data set loaded length of {len(df)}")
     df = df.query("rate_test>0.01")[["code", "registry_ids", "control_ids"]]
-    log.info(f"Filtered out codes with rate_test<=0.01 length is now {len(df)}")
+    log.info(f"Filtered out set_ids with rate_test<=0.01 length is now {len(df)}")
     log.info(f"Fixing issue with data")
     df["control_ids"] = (
         df["control_ids"].str.split(",").apply(lambda row: [s.strip() for s in row])

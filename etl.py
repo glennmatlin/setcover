@@ -3,8 +3,8 @@
 
 """ Imports """
 import pandas as pd
-from tqdm.auto import tqdm
 import pyspark.sql.functions as F
+from tqdm.auto import tqdm
 
 """ Configs """
 RUN_ID = "20210206"
@@ -39,7 +39,7 @@ def get_p_values(
     df,
     mode="chi2_contingency",
 ):
-    from scipy.stats import fisher_exact, chi2_contingency
+    from scipy.stats import chi2_contingency, fisher_exact
 
     pval_list = []
     for i in tqdm(range(len(df))):
@@ -79,7 +79,7 @@ def main():
         claims_bucket.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "registry_id")
     # Select claims around patient reference date
-    # Filter out ICD9 codes used before 2017
+    # Filter out ICD9 set_ids_used used before 2017
     registry_rdd = (
         registry_rdd.where(  # Filters to claims falling before reference date
             F.col("claim_date") < F.date_sub(F.col("reference_date"), 0)
@@ -159,7 +159,7 @@ def main():
     merged_df["rate_ratio"] = merged_df.rate_test.divide(merged_df.rate_control)
     merged_df = merged_df.merge(
         icd_to_desc_map, on="code", how="inner"
-    )  # Remove Non-ICD10 codes with inner join
+    )  # Remove Non-ICD10 set_ids_used with inner join
     merged_df.sort_values(["rate_ratio"], ascending=False, inplace=True)
 
     # ### `output`

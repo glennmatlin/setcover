@@ -21,36 +21,19 @@ registry_coverage_bucket = f"{S3_HOME}{RUN_ID}/registry_coverage_metrics.parquet
 control_coverage_bucket = f"{S3_HOME}{RUN_ID}/control_coverage_metrics.parquet"
 
 
-import plotly
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
-from tqdm.auto import tqdm
 import pandas as pd
-from pyspark import StorageLevel
+import plotly
+import plotly.express as px
+import plotly.graph_objects as go
 import pyspark.sql.functions as F
-from pyspark.sql.functions import (
-    col,
-    lit,
-    desc,
-    broadcast,
-    count,
-    countDistinct,
-    trim,
-    regexp_replace,
-    when,
-)
+from plotly.subplots import make_subplots
+from pyspark import StorageLevel
+from pyspark.sql.functions import (broadcast, col, count, countDistinct, desc,
+                                   lit, regexp_replace, trim, when)
+from pyspark.sql.types import (ArrayType, BooleanType, DateType, FloatType,
+                               IntegerType, LongType, StringType)
 from pyspark.sql.window import Window
-from pyspark.sql.types import (
-    StringType,
-    ArrayType,
-    LongType,
-    IntegerType,
-    BooleanType,
-    DateType,
-    FloatType,
-)
-
+from tqdm.auto import tqdm
 
 # ### Configs
 
@@ -87,16 +70,14 @@ icd_to_desc_map = pd.read_csv(clinical_mapping_configs["dx"]["path"]).rename(
 
 
 
-from typing import List, Set, Dict
-
-
+from typing import Dict, List, Set
 
 
 def get_p_values(
     df,
     mode="chi2_contingency",
 ):
-    from scipy.stats import fisher_exact, chi2_contingency
+    from scipy.stats import chi2_contingency, fisher_exact
 
     pval_list = []
     for i in tqdm(range(len(df))):
@@ -132,7 +113,7 @@ def get_coverage_metrics(
 ) -> object:
     """
     claims_dataframe: dataframe of claims from regsitry patients for the desired target
-    triggers_dataframe: dataframe of cohort claims used to get icd codes
+    triggers_dataframe: dataframe of cohort claims used to get icd set_ids_used
     """
 
     codes = codes[:limit_n_codes]
@@ -233,7 +214,7 @@ registry_rdd = spark.read.parquet(
 
 
 # Select claims around patient reference date
-# Filter out ICD9 codes used before 2017
+# Filter out ICD9 set_ids_used used before 2017
 registry_rdd = (
     registry_rdd.where(  # Filters to claims falling before reference date
         F.col("claim_date") < F.date_sub(F.col("reference_date"), 0)
@@ -390,7 +371,7 @@ merged_df["rate_ratio"] = merged_df.rate_test.divide(merged_df.rate_control)
 
 merged_df = merged_df.merge(
     icd_to_desc_map, on="code", how="inner"
-)  # Remove Non-ICD10 codes with inner join
+)  # Remove Non-ICD10 set_ids_used with inner join
 
 
 
@@ -648,7 +629,6 @@ if 'ExclusionSetCoverProblem' in vars():
     del(ExclusionSetCoverProblem)
 
 from setcover import ExclusionSetCoverProblem
-
 
 # ### Set Cover Solution
 

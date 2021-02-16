@@ -1,5 +1,6 @@
-from setcover.set import WeightedSet, ExclusionSet
-from .test_data import weighted_data, exclusion_data
+from setcover.set import ExclusionSet, WeightedSet
+
+from .test_data import exclusion_data, weighted_data
 
 weighted_sets = [
     WeightedSet(set_id=w[0], subset=w[1], weight=w[2]) for w in weighted_data
