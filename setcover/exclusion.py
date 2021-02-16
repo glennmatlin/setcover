@@ -1,20 +1,16 @@
 #!/usr/bin/python
 
-import concurrent.futures
-import logging
-import multiprocessing
-import os
-from collections import OrderedDict
-from itertools import repeat
-from typing import Dict, Iterable, List, Set
-
-import numpy as np
-import pandas as pd
 from tqdm.auto import tqdm
-
-from setcover import ExclusionSetCoverProblem
+import pandas as pd
+from collections import OrderedDict
+import os
+import multiprocessing
 from setcover.set import ExclusionSet
-from setcover.utils import flatten_list, flatten_set
+import logging
+import concurrent.futures
+from typing import List, Set, Iterable
+from itertools import repeat
+import numpy as np
 
 # Logging To Dos
 # TODO: Get root directory, make logs folder for logging/profiling output
@@ -53,29 +49,11 @@ class ExclusionSetCoverProblem:
         """
         self.subsets_include = OrderedDict()
         self.subsets_exclude = OrderedDict()
+        self.include_covered = set()
+        self.exclude_covered = set()
         self.elements_include = set()
         self.elements_exclude = set()
         self.cover_solution = []
-        self.include_covered = set()
-        self.exclude_covered = set()
-        """
-        before ETL
-        self.inclusive_n_total, self.exclusive_n_total = list(map(lambda item: df.iloc[0][item], ('n_total_test','n_total_control')))
-        
-        after ETL
-        self.include_elements, self.exclude_elements = map(flatten_nested_sets, (df.set_include.to_list(), df.set_exclude.to_list()))
-        self.n_include, self.n_exclude = len(include_elements), len(exclude_elements)
-        self.n_total = n_include + n_exclude
-        
-        self.token_idx_map = {}
-        self.idx_token_map = reverse_dictionary(token_idx_map)
-        
-        self.label_array = np.concatenate([np.ones(n_include), np.zeros(n_exclude)]).astype('?')
-        self.subset_array_dtypes = np.dtype([('set_id', ('S7')), ('set_array', '?', (1, n_total))])
-        self.subset_arrays = np.rec.array(df.apply(lambda row: make_subset_array(row), axis=1).to_list(), subset_array_dtypes)
-        
-        self.cover_array = np.zeros(len(label_array)).astype('?')
-        """
 
         if input_sets:
             log.info("Building data set with included data")
@@ -120,8 +98,14 @@ class ExclusionSetCoverProblem:
             self.subsets_exclude,
         ) = self._make_data(sets)
 
-    def from_vectors(self):
-        pass
+    @staticmethod
+    def _rows_to_sets(rows: Iterable) -> List[ExclusionSet]:
+        """
+
+        :param rows:
+        :return:
+        """
+        return [ExclusionSet(r[0], r[1], r[2]) for r in rows]
 
     def from_lists(
         self, ids: List[str], sets_include: List[Set[str]], sets_exclude: List[Set[str]]
@@ -145,8 +129,7 @@ class ExclusionSetCoverProblem:
         """
         rows = list(df.itertuples(name="Row", index=False))
         sets = self._rows_to_sets(rows)
-        vectors = self._sets_to_vectors(sets)
-        self._define_data(vectors)
+        self._define_data(sets)
 
     @staticmethod
     def _calculate_set_cost(subsets_data, include_covered, exclude_covered):
