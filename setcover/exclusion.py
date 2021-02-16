@@ -58,7 +58,7 @@ class ExclusionSetCoverProblem:
         self.cover_solution = []
         self.include_covered = set()
         self.exclude_covered = set()
-        '''
+        """
         before ETL
         self.inclusive_n_total, self.exclusive_n_total = list(map(lambda item: df.iloc[0][item], ('n_total_test','n_total_control')))
         
@@ -75,8 +75,7 @@ class ExclusionSetCoverProblem:
         self.subset_arrays = np.rec.array(df.apply(lambda row: make_subset_array(row), axis=1).to_list(), subset_array_dtypes)
         
         self.cover_array = np.zeros(len(label_array)).astype('?')
-        '''
-
+        """
 
         if input_sets:
             log.info("Building data set with included data")
