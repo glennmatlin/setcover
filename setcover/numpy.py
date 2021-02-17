@@ -38,7 +38,7 @@ log.addHandler(ch), log.addHandler(fh)
 
 
 class NumpySetCoverProblem:
-    """"""
+    """Test push"""
 
     def __init__(self):
         self.df: pd.DataFrame
