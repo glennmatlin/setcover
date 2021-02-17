@@ -56,14 +56,14 @@ class NumpySetCoverProblem:
         self.token_map: Dict[str, int] = {}  # TODO
         self.idx_map: Dict[int, str] = reverse_dictionary(self.token_map)
 
-        self.label_array: np.array = np.concatenate(
+        self.label_array = np.concatenate(
             [np.ones(self.n_include), np.zeros(self.n_exclude)]
         ).astype("?")
-        self.cover_array: np.array = np.zeros(self.n_all).astype("?")
+        self.cover_array = np.zeros(self.n_all).astype("?")
         self.subset_array_dtypes = np.dtype(
             [("set_id", "S7"), ("set_array", "?", (1, self.n_all))]
         )
-        self.subset_arrays: np.array[np.array[bool]] = np.rec.array(
+        self.subset_arrays = np.rec.array(
             self.df.apply(lambda row: self._make_subset_array(row), axis=1).to_list(),
             self.subset_array_dtypes,
         )  # TODO

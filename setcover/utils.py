@@ -1,6 +1,4 @@
-from typing import Dict, Iterable, List, Set
-
-import numpy as np
+from typing import Dict, Iterable, List
 
 
 def flatten_nest(nest: Iterable[Iterable[object]], output="set") -> Iterable[object]:
