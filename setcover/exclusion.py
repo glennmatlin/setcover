@@ -10,7 +10,7 @@ import logging
 import concurrent.futures
 from typing import List, Set, Iterable
 from itertools import repeat
-import numpy as np
+from numpy import isinf
 
 # Logging To Dos
 # TODO: Get root directory, make logs folder for logging/profiling output
@@ -237,7 +237,7 @@ class ExclusionSetCoverProblem:
 
                 # if any sets return as float("inf") we should stop checking them
                 inf_sets |= set(
-                    [set_id for set_id, set_cost in results if np.isinf(set_cost)]
+                    [set_id for set_id, set_cost in results if isinf(set_cost)]
                 )
                 min_set_include, min_set_exclude = (
                     self.subsets_include[min_set_id],
@@ -275,7 +275,7 @@ class ExclusionSetCoverProblem:
 
 def main():
     log.info("Importing data to problem")
-    from tests.test_sets import exclusion_sets
+    from test.test_sets import exclusion_sets
 
     problem = ExclusionSetCoverProblem(exclusion_sets)
     log.info("Finding solution to problem")

@@ -1,5 +1,5 @@
 from setcover.weighted import WeightedSetCoverProblem
-from tests.test_sets import weighted_sets
+from test.test_sets import weighted_sets
 
 
 class TestWeighted:

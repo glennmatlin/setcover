@@ -1,6 +1,6 @@
 from setcover.exclusion import ExclusionSetCoverProblem
-from tests.test_sets import exclusion_sets
-from tests.test_data import exclusion_df
+from test.test_sets import exclusion_sets
+from test.test_data import exclusion_df
 import logging
 
 logging.getLogger("py4j").setLevel(logging.ERROR)
