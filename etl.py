@@ -2,35 +2,14 @@
 # coding: utf-8
 
 """ Imports """
-import pandas as pd
+import confuse
 from tqdm.auto import tqdm
+from pyspark.sql.session import SparkSession
 import pyspark.sql.functions as F
+from pyspark.conf import SparkConf
 
-""" Configs """
-RUN_ID = "20210206"
-S3_HOME = "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/"
-
-claims_bucket = f"{S3_HOME}20201203/target_claims_df.parquet"
-control_bucket = (
-    f"{S3_HOME}20201209/stratified_claims_control_sample_ahus_20210210.parquet/"
-)
-reference_bucket = f"{S3_HOME}20201209/reference_df.parquet/"
-cohort_bucket = f"{S3_HOME}20201210/target_cohort_df.parquet/"
-
-output_bucket = f"{S3_HOME}{RUN_ID}/merged_df.parquet"
-
-clinical_mapping_configs = {
-    "dx": {
-        "path": "s3://pulse-prod/data/code_mappings/ccs_dx_icd10cm_2019.csv",
-        "code_field": "ICD-10-CM Code",
-        "desc_field": "ICD-10-CM Code Definition",
-    },
-    "px": {
-        "path": "s3://pulse-prod/data/code_mappings/procedure_code_mapping_snowflake_20200527.csv",
-        "code_field": "CODE",
-        "desc_field": "CODE_DESCRIPTION",
-    },
-}
+# from pyspark import StorageLevel
+import pandas as pd
 
 """ Functions """
 
@@ -39,14 +18,15 @@ def get_p_values(
     df,
     mode="chi2_contingency",
 ):
-    from scipy.stats import fisher_exact, chi2_contingency
+    from typing import List
+    from scipy.stats import chi2_contingency, fisher_exact
 
-    pval_list = []
+    pval_list: List[float] = []
     for i in tqdm(range(len(df))):
-        Row = df.iloc[i]
+        row = df.iloc[i]
         contingency_table = [
-            [Row["n_test"], Row["n_total_test"] - Row["n_test"]],
-            [Row["n_control"], Row["n_total_control"] - Row["n_control"]],
+            [row["n_test"], row["n_total_test"] - row["n_test"]],
+            [row["n_control"], row["n_total_control"] - row["n_control"]],
         ]
 
         if mode == "chi2_contingency":
@@ -62,24 +42,14 @@ def get_p_values(
     return pval_list
 
 
-def main():
-    icd_to_desc_map = pd.read_csv(clinical_mapping_configs["dx"]["path"]).rename(
-        index=str,
-        columns={
-            "ICD-10-CM Code": "code",
-            "ICD-10-CM Code Definition": "code_description",
-            "Beta Version CCS Category Description": "code_category",
-        },
-    )[["code", "code_description", "code_category"]]
-
-    # ### `registry_df()`
-    # ##### Spark
-    # Load Registry RDD
+def registry_etl(
+    spark: SparkSession, registry_claims_bucket: str, icd_to_desc_map: pd.DataFrame
+) -> pd.DataFrame:
     registry_rdd = spark.read.parquet(
-        claims_bucket.replace("s3:", "s3a:")
+        registry_claims_bucket  # TODO [TBD] May need .replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "registry_id")
-    # Select claims around patient reference date
-    # Filter out ICD9 codes used before 2017
+
+    # Select claims around patient reference date and filter out claims before 2017 to remove ICD9 codes
     registry_rdd = (
         registry_rdd.where(  # Filters to claims falling before reference date
             F.col("claim_date") < F.date_sub(F.col("reference_date"), 0)
@@ -88,7 +58,6 @@ def main():
         .where(F.col("reference_date") > F.lit("2017-01-01"))
     )
     registry_id_count = registry_rdd.select("registry_id").distinct().count()
-    # ##### Pandas
     registry_df = (
         registry_rdd.select("registry_id", F.explode(F.col("dx_list")).alias("code"))
         .where(F.col("code").isNotNull())
@@ -100,6 +69,8 @@ def main():
         .where(F.col("registry_count") > 3)
         .withColumn("registry_rate", F.col("registry_count") / F.lit(registry_id_count))
     ).toPandas()
+
+    # TODO [Low] Move below this into Spark
     registry_df.drop(
         registry_df.index[~registry_df.code.isin(icd_to_desc_map.code)], inplace=True
     )
@@ -112,11 +83,15 @@ def main():
         )
     )
     registry_df["n_total_test"] = n_total_test
+    return registry_df
 
-    # ### `control_df()`
-    # ##### Spark
+
+def control_etl(
+    spark: SparkSession, control_claims_bucket: str, icd_to_desc_map: pd.DataFrame
+) -> pd.DataFrame:
+    # TODO [High] Move into control_etl()
     control_rdd = spark.read.parquet(
-        control_bucket.replace("s3:", "s3a:")
+        control_claims_bucket  # TODO [TBD] May need.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "control_id")
     control_id_count = control_rdd.select("control_id").distinct().count()
     control_df = (
@@ -129,7 +104,8 @@ def main():
         )
         .withColumn("control_rate", F.col("control_count") / F.lit(control_id_count))
     ).toPandas()
-    # ##### Pandas
+
+    # TODO [Low] Move below this into Spark
     control_df.drop(
         control_df.index[~control_df.code.isin(icd_to_desc_map.code)], inplace=True
     )
@@ -140,8 +116,13 @@ def main():
         )
     )
     control_df["n_total_control"] = n_total_control
+    return control_df
 
-    # ### `merged_df()`
+
+def merge_etl(
+    registry_df: pd.DataFrame, control_df: pd.DataFrame, icd_to_desc_map: pd.DataFrame
+) -> pd.DataFrame:
+    # TODO [Low] Move functionality into Spark
     merged_df = pd.merge(registry_df, control_df, how="inner", on="code")
     merged_df.query("registry_count != 0 & control_count != 0", inplace=True)
     merged_df.drop(
@@ -162,18 +143,73 @@ def main():
     )  # Remove Non-ICD10 codes with inner join
     merged_df.sort_values(["rate_ratio"], ascending=False, inplace=True)
 
-    # ### `output`
     # Convert dtypes and make lists into strings for saving to file
     merged_df = merged_df.convert_dtypes()
     merged_df["registry_ids"] = merged_df["registry_ids"].apply(", ".join)
     merged_df["control_ids"] = merged_df["control_ids"].apply(", ".join)
+    return merged_df
 
+
+def icd_map(dx_clinical_mapping: object) -> pd.DataFrame:
+    # TODO [Low] Put PandasDF into SparkDF
+    icd_to_desc_map = pd.read_csv(dx_clinical_mapping["path"].get("str")).rename(
+        index=str,
+        columns={
+            dx_clinical_mapping["code_field"].get("str"): "code",
+            dx_clinical_mapping["desc_field"].get("str"): "code_description",
+            dx_clinical_mapping["category_field"].get("str"): "code_category",
+        },
+    )[["code", "code_description", "code_category"]]
+    return icd_to_desc_map
+
+
+def main(
+    spark: SparkSession,
+    registry_claims_bucket: str,
+    control_claims_bucket: str,
+    dx_clinical_mapping: str,
+) -> pd.DataFrame:
+    icd_to_desc_map = icd_map(dx_clinical_mapping)
+
+    """ ETL: Rare Disease Registry Patients """
+    registry_df = registry_etl(spark, registry_claims_bucket, icd_to_desc_map)
+
+    """ ETL : Controlled Sample """
+    control_df = control_etl(spark, control_claims_bucket, icd_to_desc_map)
+
+    """ ETL: Merging Registry and Control"""
+    merged_df = merge_etl(registry_df, control_df, icd_to_desc_map)
+
+    return merged_df
+
+
+if __name__ == "__main__":
+    """Spark Configuration"""
+    conf = SparkConf()
+    conf.set("spark.logConf", "true")
+    spark = (
+        SparkSession.builder.config(conf=conf)
+        .master("local")
+        .appName("setcover")
+        .getOrCreate()
+    )
+    spark.sparkContext.setLogLevel("OFF")
+
+    """Load configuration from .yaml file."""
+    config = confuse.Configuration("setcover", __name__)
+    config.set_file("config.yaml")
+    _registry_claims_bucket = config["buckets"]["registry_claims"].get("str")
+    _control_claims_bucket = config["buckets"]["control_claims"].get("str")
+    _dx_clinical_mapping = config["clinical_mapping"]["dx"]
+
+    """ ETL Operations"""
+    merged_df = main(
+        spark, _registry_claims_bucket, _control_claims_bucket, _dx_clinical_mapping
+    )
+
+    output_bucket = config["buckets"]["output"].get("str")
     if merged_df is not None:
         merged_df.to_parquet(
             output_bucket,
             index=False,
         )
-
-
-if __name__ == "__main__":
-    main()

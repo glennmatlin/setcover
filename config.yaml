@@ -3,9 +3,23 @@ logLevel: WARN
 
 # TODO Make PyYAML Constructors to use variables
 # TODO Replace with current date or hash
+# reference: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201209/reference_df.parquet/"
+# cohort: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201210/target_cohort_df.parquet/"
+
 run_id: "20211011"
 buckets:
-  input: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/merged_df.parquet"
-  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/problem_solution.csv"
+  registry_claims: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201203/target_claims_df.parquet"
+  control_claims: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201209/stratified_claims_control_sample_ahus_20210210.parquet/"
+  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201210/merged_df.parquet"
 problem:
   limit: 10
+clinical_mapping:
+  dx:
+    path: "s3://pulse-prod/data/code_mappings/ccs_dx_icd10cm_2019.csv"
+    code_field: "ICD-10-CM Code"
+    desc_field: "ICD-10-CM Code Definition"
+    category_field: "Beta Version CCS Category Description"
+  px:
+    path: "s3://pulse-prod/data/code_mappings/procedure_code_mapping_snowflake_20200527.csv"
+    code_field: "CODE"
+    desc_field: "CODE_DESCRIPTION"
