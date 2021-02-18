@@ -3,8 +3,8 @@
 
 """ Imports """
 import pandas as pd
-from tqdm.auto import tqdm
 import pyspark.sql.functions as F
+from tqdm.auto import tqdm
 
 """ Configs """
 RUN_ID = "20210206"
@@ -39,7 +39,7 @@ def get_p_values(
     df,
     mode="chi2_contingency",
 ):
-    from scipy.stats import fisher_exact, chi2_contingency
+    from scipy.stats import chi2_contingency, fisher_exact
 
     pval_list = []
     for i in tqdm(range(len(df))):

@@ -1,26 +1,50 @@
-from setcover.exclusion import ExclusionSetCoverProblem
-from tests.test_sets import exclusion_sets
-from tests.test_data import exclusion_df
 import logging
+
+from setcover.problem import SetCoverProblem, Subset
+from tests.test_data import data, df
 
 logging.getLogger("py4j").setLevel(logging.ERROR)
 log = logging.getLogger(__name__)
 
+subsets = [
+    Subset(set_id=w[0], include_elements=w[1], exclude_elements=w[2]) for w in data
+]
 
-class TestExclusion:
-    def test_exclusion(self):
-        exclusion_problem = ExclusionSetCoverProblem(exclusion_sets)
-        exclusion_problem.solve()
-        assert exclusion_problem.cover_solution == [
+
+class TestProblem:
+    def test_subsets(self):
+        assert subsets
+        for subset in subsets[:1]:
+            set_id, include_elements, exclude_elements = subset
+            assert set_id == "A10"
+            assert include_elements == ["Glenn", "Vijay"]
+            assert exclude_elements == [
+                "Jean",
+                "Daniel",
+                "Youzhi",
+                "Prestinario",
+                "Young",
+                "Haroon",
+                "Andrea",
+                "Eric",
+                "Kamalesh",
+                "Jeremy K",
+                "Ethan",
+            ]
+
+    def test_problem(self):
+        problem = SetCoverProblem(subsets)
+        problem.solve()
+        assert problem.cover_solution == [
             ("E50", 4.33333, 3, 13),
             ("B20", 2.0, 2, 4),
         ]
 
-    def test_exclusion_from_df(self):
-        exclusion_problem = ExclusionSetCoverProblem()
-        exclusion_problem.from_dataframe(exclusion_df)
-        exclusion_problem.solve()
-        assert exclusion_problem.cover_solution == [
+    def test_problem_from_df(self):
+        problem = SetCoverProblem()
+        problem.from_dataframe(df)
+        problem.solve()
+        assert problem.cover_solution == [
             ("E50", 4.33333, 3, 13),
             ("B20", 2.0, 2, 4),
         ]

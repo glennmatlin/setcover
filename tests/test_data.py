@@ -1,6 +1,6 @@
 import pandas as pd
 
-exclusion_data = [
+data = [
     (
         "A10",
         ["Glenn", "Vijay"],
@@ -101,6 +101,4 @@ exclusion_data = [
     ),
 ]
 
-exclusion_df = pd.DataFrame(
-    exclusion_data, columns=["set_id", "set_include", "set_exclude"]
-)
+df = pd.DataFrame(data, columns=["set_id", "set_include", "set_exclude"])

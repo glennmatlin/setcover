@@ -1,6 +1,6 @@
+import pytest
 from pyspark.conf import SparkConf
 from pyspark.sql.session import SparkSession
-import pytest
 
 conf = SparkConf()
 conf.set("spark.logConf", "true")
