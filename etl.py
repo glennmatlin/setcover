@@ -147,6 +147,9 @@ def merge_etl(
     merged_df = merged_df.convert_dtypes()
     merged_df["registry_ids"] = merged_df["registry_ids"].apply(", ".join)
     merged_df["control_ids"] = merged_df["control_ids"].apply(", ".join)
+
+    # Drop ICD Codes with low rate in registry patients
+    merged_df.query("rate_test>0.01").sort_values("rate_ratio", ascending=False, inplace=True)
     return merged_df
 
 
