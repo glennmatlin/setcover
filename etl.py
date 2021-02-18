@@ -3,43 +3,11 @@
 
 """ Imports """
 import confuse
-from tqdm.auto import tqdm
 from pyspark.sql.session import SparkSession
 import pyspark.sql.functions as F
 from pyspark.conf import SparkConf
-
-# from pyspark import StorageLevel
 import pandas as pd
-
-""" Functions """
-
-
-def get_p_values(
-    df,
-    mode="chi2_contingency",
-):
-    from typing import List
-    from scipy.stats import chi2_contingency, fisher_exact
-
-    pval_list: List[float] = []
-    for i in tqdm(range(len(df))):
-        row = df.iloc[i]
-        contingency_table = [
-            [row["n_test"], row["n_total_test"] - row["n_test"]],
-            [row["n_control"], row["n_total_control"] - row["n_control"]],
-        ]
-
-        if mode == "chi2_contingency":
-            _, pval, _, _ = chi2_contingency(contingency_table)
-        elif mode == "fisher_exact":
-            _, pval = fisher_exact(contingency_table)
-        else:
-            raise ValueError(
-                "Stat test mode must be 'chi2_contingency' or 'fisher_exact'"
-            )
-
-        pval_list.append(pval)
-    return pval_list
+from setcover.utils import get_p_values
 
 
 def registry_etl(
@@ -54,8 +22,12 @@ def registry_etl(
         registry_rdd.where(  # Filters to claims falling before reference date
             F.col("claim_date") < F.date_sub(F.col("reference_date"), 0)
         )
-        .where(F.col("claim_date") > F.date_sub(F.col("reference_date"), 1 * 365))
-        .where(F.col("reference_date") > F.lit("2017-01-01"))
+        .where(
+            F.col("claim_date") > F.date_sub(F.col("reference_date"), 1 * 365)
+        )  # TODO [Low] Move time length into YAML
+        .where(
+            F.col("reference_date") > F.lit("2017-01-01")
+        )  # TODO [Low] Move cut-off date into YAML
     )
     registry_id_count = registry_rdd.select("registry_id").distinct().count()
     registry_df = (
@@ -66,7 +38,9 @@ def registry_etl(
             F.collect_set(F.col("registry_id")).alias("registry_ids"),
             F.countDistinct(F.col("registry_id")).alias("registry_count"),
         )
-        .where(F.col("registry_count") > 3)
+        .where(
+            F.col("registry_count") > 3
+        )  # TODO [Low] Move registry minimum into YAML
         .withColumn("registry_rate", F.col("registry_count") / F.lit(registry_id_count))
     ).toPandas()
 
@@ -89,7 +63,6 @@ def registry_etl(
 def control_etl(
     spark: SparkSession, control_claims_bucket: str, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
-    # TODO [High] Move into control_etl()
     control_rdd = spark.read.parquet(
         control_claims_bucket  # TODO [TBD] May need.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "control_id")
@@ -134,7 +107,7 @@ def merge_etl(
         inplace=True,
     )
     merged_df["pval"] = get_p_values(merged_df)
-    merged_df.query("pval < 0.05", inplace=True)
+    merged_df.query("pval < 0.05", inplace=True)  # TODO [Low] Move PVAL into YAML
     merged_df["rate_test"] = merged_df.n_test.divide(merged_df.n_total_test)
     merged_df["rate_control"] = merged_df.n_control.divide(merged_df.n_total_control)
     merged_df["rate_ratio"] = merged_df.rate_test.divide(merged_df.rate_control)
@@ -144,12 +117,17 @@ def merge_etl(
     merged_df.sort_values(["rate_ratio"], ascending=False, inplace=True)
 
     # Convert dtypes and make lists into strings for saving to file
+    # TODO [High] Figure out a better way to save and deal with lists
     merged_df = merged_df.convert_dtypes()
     merged_df["registry_ids"] = merged_df["registry_ids"].apply(", ".join)
     merged_df["control_ids"] = merged_df["control_ids"].apply(", ".join)
 
     # Drop ICD Codes with low rate in registry patients
-    merged_df.query("rate_test>0.01").sort_values("rate_ratio", ascending=False, inplace=True)
+    merged_df.query(
+        "rate_test>0.01"
+    ).sort_values(  # TODO [Low] Move rate_test minimum into YAML
+        "rate_ratio", ascending=False, inplace=True
+    )
     return merged_df
 
 
@@ -172,12 +150,13 @@ def main(
     control_claims_bucket: str,
     dx_clinical_mapping: str,
 ) -> pd.DataFrame:
+    """ Get ICD10 Code Descriptions """
     icd_to_desc_map = icd_map(dx_clinical_mapping)
 
     """ ETL: Rare Disease Registry Patients """
     registry_df = registry_etl(spark, registry_claims_bucket, icd_to_desc_map)
 
-    """ ETL : Controlled Sample """
+    """ ETL: Controlled Representative Sample"""
     control_df = control_etl(spark, control_claims_bucket, icd_to_desc_map)
 
     """ ETL: Merging Registry and Control"""
