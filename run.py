@@ -56,13 +56,10 @@ def make_data(input_path: str, filetype="parquet") -> List[Subset]:
     log.info(f"Reading in data from {input_path}")
     if filetype == "parquet":
         df = pd.read_parquet(
-            input_path, columns=["code", "registry_ids", "control_ids", "rate_test"]
+            input_path, columns=["code", "registry_ids", "control_ids"]
         )
     else:
         raise TypeError
-    log.info(f"Data set loaded length of {len(df)}")
-    df = df.query("rate_test>0.01")[["code", "registry_ids", "control_ids"]]
-    log.info(f"Filtered out codes with rate_test<=0.01 length is now {len(df)}")
     log.info(f"Fixing issue with data")
     df["control_ids"] = (
         df["control_ids"].str.split(",").apply(lambda row: [s.strip() for s in row])
@@ -79,6 +76,7 @@ def make_data(input_path: str, filetype="parquet") -> List[Subset]:
 
 # TODO Mock s3 data objects for testing
 def main():
+    # TODO [Medium] Run ETL as part of the main run.py
     log.info(f"Making data using input bucket")
     data = make_data(input_bucket)
     log.info(f"Loading the data into problem")

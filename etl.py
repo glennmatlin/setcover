@@ -8,6 +8,36 @@ import pyspark.sql.functions as F
 from pyspark.conf import SparkConf
 import pandas as pd
 from setcover.utils import get_p_values
+import logging
+import datetime
+
+"""Logging"""
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+    datefmt="%m-%d %H:%M",
+    filemode="w",
+)
+# TODO Make sure to log to file all silenced modules but silent in console
+# Silence logging for backend services not needed
+silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "numexpr"]
+for module in silenced_modules:
+    logging.getLogger(module).setLevel(logging.CRITICAL)
+
+logging.getLogger("setcover.etl").setLevel(logging.INFO)
+
+log = logging.getLogger(__name__)
+# Create stream handler which writes ERROR messages or higher to the sys.stderr
+ch = logging.StreamHandler()
+ch.setLevel(logging.ERROR)
+# Set a format which is simpler for console use
+ch.setFormatter(logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s"))
+# Create file handlers for info and debug logs
+fh = logging.FileHandler("run.log")
+# Add handlers to logger
+log.addHandler(ch), log.addHandler(fh)
+
+# TODO [High] Change refernces from registry, control, merged to include, exclude, etl
 
 
 def registry_etl(
@@ -40,11 +70,11 @@ def registry_etl(
         )
         .where(
             F.col("registry_count") > 3
-        )  # TODO [Low] Move registry minimum into YAML
+        )  # TODO [High] Get registry minimum into YAML
         .withColumn("registry_rate", F.col("registry_count") / F.lit(registry_id_count))
     ).toPandas()
 
-    # TODO [Low] Move below this into Spark
+    # TODO [Medium] Move below this into Spark
     registry_df.drop(
         registry_df.index[~registry_df.code.isin(icd_to_desc_map.code)], inplace=True
     )
@@ -78,7 +108,7 @@ def control_etl(
         .withColumn("control_rate", F.col("control_count") / F.lit(control_id_count))
     ).toPandas()
 
-    # TODO [Low] Move below this into Spark
+    # TODO [Medium] Move below this into Spark
     control_df.drop(
         control_df.index[~control_df.code.isin(icd_to_desc_map.code)], inplace=True
     )
@@ -95,7 +125,7 @@ def control_etl(
 def merge_etl(
     registry_df: pd.DataFrame, control_df: pd.DataFrame, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
-    # TODO [Low] Move functionality into Spark
+    # TODO [Medium] Move functionality into Spark
     merged_df = pd.merge(registry_df, control_df, how="inner", on="code")
     merged_df.query("registry_count != 0 & control_count != 0", inplace=True)
     merged_df.drop(
@@ -107,7 +137,7 @@ def merge_etl(
         inplace=True,
     )
     merged_df["pval"] = get_p_values(merged_df)
-    merged_df.query("pval < 0.05", inplace=True)  # TODO [Low] Move PVAL into YAML
+    merged_df.query("pval < 0.05", inplace=True) # TODO [High] Get value from config yaml
     merged_df["rate_test"] = merged_df.n_test.divide(merged_df.n_total_test)
     merged_df["rate_control"] = merged_df.n_control.divide(merged_df.n_total_control)
     merged_df["rate_ratio"] = merged_df.rate_test.divide(merged_df.rate_control)
@@ -117,22 +147,25 @@ def merge_etl(
     merged_df.sort_values(["rate_ratio"], ascending=False, inplace=True)
 
     # Convert dtypes and make lists into strings for saving to file
-    # TODO [High] Figure out a better way to save and deal with lists
+    # TODO [Medium] Figure out a better way to save and deal with lists
     merged_df = merged_df.convert_dtypes()
     merged_df["registry_ids"] = merged_df["registry_ids"].apply(", ".join)
     merged_df["control_ids"] = merged_df["control_ids"].apply(", ".join)
 
     # Drop ICD Codes with low rate in registry patients
     merged_df.query(
-        "rate_test>0.01"
-    ).sort_values(  # TODO [Low] Move rate_test minimum into YAML
+        "rate_test>0.01" # TODO [High] Get value from config yaml
+    ).sort_values(
         "rate_ratio", ascending=False, inplace=True
     )
+    log.info(f"Data set loaded length of {len(merged_df)}")
+    merged_df = merged_df[["code", "registry_ids", "control_ids"]]
+    log.info(f"Filtered out codes with rate_test<=0.01 length is now {len(merged_df)}")
     return merged_df
 
 
 def icd_map(dx_clinical_mapping: object) -> pd.DataFrame:
-    # TODO [Low] Put PandasDF into SparkDF
+    # TODO [Medium] Put PandasDF into SparkDF
     icd_to_desc_map = pd.read_csv(dx_clinical_mapping["path"].get("str")).rename(
         index=str,
         columns={
@@ -167,27 +200,51 @@ def main(
 
 if __name__ == "__main__":
     """Spark Configuration"""
-    conf = SparkConf()
-    conf.set("spark.logConf", "true")
-    spark = (
-        SparkSession.builder.config(conf=conf)
-        .master("local")
-        .appName("setcover")
-        .getOrCreate()
-    )
-    spark.sparkContext.setLogLevel("OFF")
+    try:
+        conf = SparkConf()
+        conf.set("spark.logConf", "true")
+        spark = (
+            SparkSession.builder.config(conf=conf)
+                .master("local")
+                .appName("setcover")
+                .getOrCreate()
+        )
+        spark.sparkContext.setLogLevel("OFF")
+    except ValueError:
+        log.warn("Existing SparkSession detected: Using existing SparkSession")
 
-    """Load configuration from .yaml file."""
+    """ Load YAML Configuration """
     config = confuse.Configuration("setcover", __name__)
     config.set_file("config.yaml")
     _registry_claims_bucket = config["buckets"]["registry_claims"].get("str")
     _control_claims_bucket = config["buckets"]["control_claims"].get("str")
-    _dx_clinical_mapping = config["clinical_mapping"]["dx"]
+    _dx_clinical_mapping = config["clinical_mapping"]["dx"].get("str")
 
-    """ ETL Operations"""
-    merged_df = main(
-        spark, _registry_claims_bucket, _control_claims_bucket, _dx_clinical_mapping
-    )
+    """ Run Environment """
+    _run_env = config["run_env"].get("str")
+    if _run_env == 'prod':
+        bucket_name = 'pulse-prod'
+        output_bucket_name = 'pulse-output'
+    elif _run_env == 'dev':
+        bucket_name = 'pulse.dev'
+        output_bucket_name = 'pulse.dev'
+
+    """ Run Date """
+    _run_date_input = config["run_date"].get("str")
+    if not _run_date_input:
+        run_datetime = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+    else:
+        run_datetime = datetime.datetime.strptime(_run_date_input, '%Y-%m-%d')
+    run_date = run_datetime.date()
+    run_date_str = run_date.strftime('%Y%m%d')
+
+    """ ETL Operations """
+    try:
+        merged_df = main(
+            spark, _registry_claims_bucket, _control_claims_bucket, _dx_clinical_mapping
+        )
+    except ValueError:
+        log.error("main() failed, possible issue with SparkSession")
 
     output_bucket = config["buckets"]["output"].get("str")
     if merged_df is not None:

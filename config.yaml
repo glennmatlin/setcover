@@ -6,13 +6,18 @@ logLevel: WARN
 # reference: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201209/reference_df.parquet/"
 # cohort: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201210/target_cohort_df.parquet/"
 
-run_id: "20211011"
+run_env: 'dev'
+run_date: "20211011"
 buckets:
   registry_claims: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201203/target_claims_df.parquet"
-  control_claims: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201209/stratified_claims_control_sample_ahus_20210210.parquet/"
-  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201210/merged_df.parquet"
+  control_claims: "s3://pulse.dev/data/ALXN/aHUS-Predictive/20201204/control_claims_df.parquet"
+  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201218/etl_df.parquet"
 problem:
   limit: 10
+etl:
+  include_count_min: 3
+  p_value_max: 0.05
+  test_rate_min: 0.025
 clinical_mapping:
   dx:
     path: "s3://pulse-prod/data/code_mappings/ccs_dx_icd10cm_2019.csv"
