@@ -21,36 +21,19 @@ registry_coverage_bucket = f"{S3_HOME}{RUN_ID}/registry_coverage_metrics.parquet
 control_coverage_bucket = f"{S3_HOME}{RUN_ID}/control_coverage_metrics.parquet"
 
 
-import plotly
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
-from tqdm.auto import tqdm
 import pandas as pd
-from pyspark import StorageLevel
+import plotly
+import plotly.express as px
+import plotly.graph_objects as go
 import pyspark.sql.functions as F
-from pyspark.sql.functions import (
-    col,
-    lit,
-    desc,
-    broadcast,
-    count,
-    countDistinct,
-    trim,
-    regexp_replace,
-    when,
-)
+from plotly.subplots import make_subplots
+from pyspark import StorageLevel
+from pyspark.sql.functions import (broadcast, col, count, countDistinct, desc,
+                                   lit, regexp_replace, trim, when)
+from pyspark.sql.types import (ArrayType, BooleanType, DateType, FloatType,
+                               IntegerType, LongType, StringType)
 from pyspark.sql.window import Window
-from pyspark.sql.types import (
-    StringType,
-    ArrayType,
-    LongType,
-    IntegerType,
-    BooleanType,
-    DateType,
-    FloatType,
-)
-
+from tqdm.auto import tqdm
 
 # ### Configs
 
@@ -87,16 +70,14 @@ icd_to_desc_map = pd.read_csv(clinical_mapping_configs["dx"]["path"]).rename(
 
 
 
-from typing import List, Set, Dict
-
-
+from typing import Dict, List, Set
 
 
 def get_p_values(
     df,
     mode="chi2_contingency",
 ):
-    from scipy.stats import fisher_exact, chi2_contingency
+    from scipy.stats import chi2_contingency, fisher_exact
 
     pval_list = []
     for i in tqdm(range(len(df))):
@@ -644,56 +625,55 @@ fig.show()
 
 
 
-if 'ExclusionSetCoverProblem' in vars():
-    del(ExclusionSetCoverProblem)
+if 'SetCoverProblem' in vars():
+    del(SetCoverProblem)
 
-from setcover import ExclusionSetCoverProblem
-
+from setcover import SetCoverProblem
 
 # ### Set Cover Solution
 
 
 
-exclusion_df = merged_df.query("rate_test>0.01")[
+df = merged_df.query("rate_test>0.01")[
     ["code", "registry_ids", "control_ids"]
 ]
 
 
 
 
-exclusion_problem = ExclusionSetCoverProblem()
+problem = SetCoverProblem()
 
 
 
 
-rows = list(exclusion_df.itertuples(name="Row", index=False))
-sets = exclusion_problem._rows_to_sets(rows)
+rows = list(df.itertuples(name="Row", index=False))
+sets = problem._rows_to_sets(rows)
 
 
 
 
-exclusion_problem = ExclusionSetCoverProblem(sets)
+problem = SetCoverProblem(sets)
 
 
 
 
-exclusion_problem.solve()
+problem.solve()
 
 
 
 
-exclusion_cover_solution = [code for code, cost in exclusion_problem.cover_solution]
+problem_solution = [code for code, cost in problem.cover_solution]
 
 
 
 
-exclusion_cover_solution = pd.Series(exclusion_cover_solution)
+problem_solution = pd.Series(problem_solution)
 
 
 
 
-if exclusion_cover_solution is not None:
-    exclusion_cover_solution.to_csv(cover_problem_bucket.replace('parquet','csv'))
+if problem_solution is not None:
+    problem_solution.to_csv(cover_problem_bucket.replace('parquet','csv'))
 
 
 # ### Set Cover Results
@@ -716,7 +696,7 @@ registry_coverage_metrics.index = registry_coverage_metrics.index.set_names(["n_
 if 'registry_coverage_metrics' not in vars():
     registry_coverage_metrics = get_coverage_metrics(
         rdd=registry_rdd,
-        codes=exclusion_cover_solution,
+        codes=problem_solution,
         id_field="registry_id",
         dxs_field="dx_list",
         limit_n_codes=10
@@ -782,7 +762,7 @@ control_coverage_metrics.index = control_coverage_metrics.index.set_names(["n_co
 if control_coverage_metrics is None:
     control_coverage_metrics = get_coverage_metrics(
         control_rdd,
-        exclusion_problem.cover_solution,
+        problem.cover_solution,
         field="control_id",
         limit_n_codes=None,
     )
