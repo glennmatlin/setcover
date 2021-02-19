@@ -1,30 +1,46 @@
 appName: setcover
 logLevel: WARN
 
-# TODO Make PyYAML Constructors to use variables
-# TODO Replace with current date or hash
-# reference: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201209/reference_df.parquet/"
-# cohort: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201210/target_cohort_df.parquet/"
+# TODO [Medium] Make PyYAML Constructors to use variables and incorporate run env and date
+# """ Run Environment """
+# _run_env = config["run_env"].get("str")
+# if _run_env == "prod":
+#     bucket_name = "pulse-prod"
+#     output_bucket_name = "pulse-output"
+# elif _run_env == "dev":
+#     bucket_name = "pulse.dev"
+#     output_bucket_name = "pulse.dev"
+# TODO [Medium] Use run date in ETL
+# """ Run Date """
+# _run_date_input = config["run_date"].get("str")
+# if not _run_date_input:
+#     run_datetime = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+# else:
+#     run_datetime = datetime.datetime.strptime(_run_date_input, "%Y-%m-%d")
+# run_date = run_datetime.date()
+# run_date_str = run_date.strftime("%Y%m%d")
 
 run_env: 'dev'
-run_date: "20211011"
+run_date: "20211018"
 buckets:
-  registry_claims: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201203/target_claims_df.parquet"
+  registry_claims: "s3://pulse.dev/data/ALXN/aHUS-Predictive-Undiagnosed/20201203/target_claims_df.parquet"
   control_claims: "s3://pulse.dev/data/ALXN/aHUS-Predictive/20201204/control_claims_df.parquet"
-  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201218/etl_df.parquet"
+#  reference: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201209/reference_df.parquet/"
+#  cohort: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201210/target_cohort_df.parquet/"
+  output: "s3://kh-data/setcover/Alexion/aHUS/etl/20201218_etl_df.parquet"
 problem:
-  limit: 10
+  limit: 200
 etl:
   include_count_min: 3
   p_value_max: 0.05
   test_rate_min: 0.025
 clinical_mapping:
   dx:
-    path: "s3://pulse-prod/data/code_mappings/ccs_dx_icd10cm_2019.csv"
+    bucket: "s3://pulse-prod/data/code_mappings/ccs_dx_icd10cm_2019.csv"
     code_field: "ICD-10-CM Code"
     desc_field: "ICD-10-CM Code Definition"
     category_field: "Beta Version CCS Category Description"
   px:
-    path: "s3://pulse-prod/data/code_mappings/procedure_code_mapping_snowflake_20200527.csv"
+    bucket: "s3://pulse-prod/data/code_mappings/procedure_code_mapping_snowflake_20200527.csv"
     code_field: "CODE"
     desc_field: "CODE_DESCRIPTION"

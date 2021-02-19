@@ -13,5 +13,6 @@ dependencies:
   - s3fs
   - fsspec
   - fastparquet
+  - confuse
 # pip:
   # --upgrade --no-deps --force-reinstall git+https://github.com/glennmatlin/setcover.git@ec2'
