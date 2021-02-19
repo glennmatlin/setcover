@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # # Set Cover Optimization of Trigger Codes
 
+import logging
+from typing import List
+
+import confuse
 # ## Imports
 import pandas as pd
-from setcover.exclusion import ExclusionSetCoverProblem
-from setcover.set import ExclusionSet
-from typing import List
-import logging
-import confuse
+
+from setcover.problem import SetCoverProblem, Subset
 
 """Logging"""
 logging.basicConfig(
@@ -22,7 +23,7 @@ silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "num
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
-logging.getLogger("setcover.exclusion").setLevel(logging.INFO)
+logging.getLogger("setcover.problem").setLevel(logging.INFO)
 
 log = logging.getLogger(__name__)
 # Create stream handler which writes ERROR messages or higher to the sys.stderr
@@ -45,7 +46,7 @@ problem_limit = config["problem"]["limit"].get(int)
 print(input_bucket, output_bucket)
 
 
-def make_data(input_path: str, filetype="parquet") -> List[ExclusionSet]:
+def make_data(input_path: str, filetype="parquet") -> List[Subset]:
     """
     prepares data to be used in set cover problem using pandas
     :param input_path: path to parquet data
@@ -72,7 +73,7 @@ def make_data(input_path: str, filetype="parquet") -> List[ExclusionSet]:
     # TODO: Replace with .from_df
     log.info(f"Final prep")
     rows = list(df.itertuples(name="Row", index=False))
-    sets = ExclusionSetCoverProblem._rows_to_sets(rows)
+    sets = SetCoverProblem._rows_to_sets(rows)
     return sets
 
 
@@ -81,11 +82,11 @@ def main():
     log.info(f"Making data using input bucket")
     data = make_data(input_bucket)
     log.info(f"Loading the data into problem")
-    problem = ExclusionSetCoverProblem(data)
+    problem = SetCoverProblem(data)
     log.info(f"Solving problem")
     problem.solve(limit=problem_limit)
     log.info(f"Exporting solution")
-    exclusion_cover_solution = pd.DataFrame(
+    problem_solution = pd.DataFrame(
         problem.cover_solution,
         columns=[
             "set_id",
@@ -94,7 +95,7 @@ def main():
             "new_covered_exclusive",
         ],
     )
-    exclusion_cover_solution.to_csv(output_bucket)
+    problem_solution.to_csv(output_bucket)
 
 
 if __name__ == "__main__":

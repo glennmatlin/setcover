@@ -1,16 +1,16 @@
 #!/usr/bin/python
 
-from tqdm.auto import tqdm
-import pandas as pd
-from collections import OrderedDict
-import os
-import multiprocessing
-from setcover.set import ExclusionSet
-import logging
 import concurrent.futures
-from typing import List, Set, Iterable
+import logging
+import multiprocessing
+import os
+from collections import OrderedDict, namedtuple
 from itertools import repeat
-from numpy import isinf
+from typing import Iterable, List, Set
+
+import numpy as np
+import pandas as pd
+from tqdm.auto import tqdm
 
 # Logging To Dos
 # TODO: Get root directory, make logs folder for logging/profiling output
@@ -34,12 +34,14 @@ ch.setLevel(logging.ERROR)
 # Set a format which is simpler for console use
 ch.setFormatter(logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s"))
 # Create file handlers for info and debug logs
-fh = logging.FileHandler("exclusion.log")
+fh = logging.FileHandler("problem.log")
 # Add handlers to logger
 log.addHandler(ch), log.addHandler(fh)
 
+Subset = namedtuple("Set", ["set_id", "include_elements", "exclude_elements"])
 
-class ExclusionSetCoverProblem:
+
+class SetCoverProblem:
     """"""
 
     def __init__(self, input_sets=None):
@@ -66,7 +68,7 @@ class ExclusionSetCoverProblem:
 
     @staticmethod
     def _make_data(
-        sets: List[ExclusionSet],
+        sets: List[Subset],
     ) -> object:
         """
 
@@ -78,14 +80,14 @@ class ExclusionSetCoverProblem:
         subsets_include = OrderedDict()
         subsets_exclude = OrderedDict()
         for set_ in sets:
-            subset_id, subset_include, subset_exclude = set_
-            subsets_include[subset_id] = set(subset_include)
-            subsets_exclude[subset_id] = set(subset_exclude)
-            elements_include |= set(subset_include)
-            elements_exclude |= set(subset_exclude)
+            subset_id, include_elements, exclude_elements = set_
+            subsets_include[subset_id] = set(include_elements)
+            subsets_exclude[subset_id] = set(exclude_elements)
+            elements_include |= set(include_elements)
+            elements_exclude |= set(exclude_elements)
         return elements_include, elements_exclude, subsets_include, subsets_exclude
 
-    def _define_data(self, sets: List[ExclusionSet]):
+    def _define_data(self, sets: List[Subset]):
         """
 
         :param sets:
@@ -99,13 +101,13 @@ class ExclusionSetCoverProblem:
         ) = self._make_data(sets)
 
     @staticmethod
-    def _rows_to_sets(rows: Iterable) -> List[ExclusionSet]:
+    def _rows_to_sets(rows: Iterable) -> List[Subset]:
         """
 
         :param rows:
         :return:
         """
-        return [ExclusionSet(r[0], r[1], r[2]) for r in rows]
+        return [Subset(r[0], r[1], r[2]) for r in rows]
 
     def from_lists(
         self, ids: List[str], sets_include: List[Set[str]], sets_exclude: List[Set[str]]
@@ -237,7 +239,7 @@ class ExclusionSetCoverProblem:
 
                 # if any sets return as float("inf") we should stop checking them
                 inf_sets |= set(
-                    [set_id for set_id, set_cost in results if isinf(set_cost)]
+                    [set_id for set_id, set_cost in results if np.isinf(set_cost)]
                 )
                 min_set_include, min_set_exclude = (
                     self.subsets_include[min_set_id],
@@ -275,9 +277,9 @@ class ExclusionSetCoverProblem:
 
 def main():
     log.info("Importing data to problem")
-    from test.test_sets import exclusion_sets
+    from tests.test_sets import sets
 
-    problem = ExclusionSetCoverProblem(exclusion_sets)
+    problem = SetCoverProblem(sets)
     log.info("Finding solution to problem")
     problem.solve()
 
