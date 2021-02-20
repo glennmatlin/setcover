@@ -3,8 +3,9 @@
 
 """ Imports """
 import logging
-import traceback
 import sys
+import traceback
+
 import confuse
 import pandas as pd
 import pyspark.sql.functions as F
