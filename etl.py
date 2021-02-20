@@ -57,7 +57,7 @@ def registry_etl(
     spark: SparkSession, config: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
 
-    registry_claims_bucket = config["buckets"]["registry_claims"].get(int)
+    registry_claims_bucket = config["buckets"]["registry_claims"].get(str)
     log.info(f"Registry claim bucket: {registry_claims_bucket}")
 
     log.info(f"Reading in registry claims data")
