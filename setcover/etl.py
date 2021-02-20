@@ -205,16 +205,21 @@ def merge_etl(
     df.sort_values(["rate_ratio"], ascending=False, inplace=True)
 
     """ Drop ICD Codes with low rate in registry patients """
-    test_rate_min = config["etl"]["test_rate_min"].get(float)
-    log.info(f"Data set has length of {len(df)}")
-    log.info(f"Filtered out codes with rate_test<={test_rate_min}")
-    df.query(f"rate_test>{test_rate_min}", inplace=True)
-    df.sort_values("rate_ratio", ascending=False, inplace=True)
-    log.info(f"DF length is now {len(df)}")
+    try:
+        test_rate_min = config["etl"]["test_rate_min"].get(float)
+        if test_rate_min == 0:
+            log.warn('test_rate_min set to 0 -- no filtering on test_rate is being done')
+        log.info(f"Data set has length of {len(df)}")
+        log.info(f"Filtered out codes with rate_test<={test_rate_min}")
+        df.query(f"rate_test>{test_rate_min}", inplace=True)
+        log.info(f"DF length is now {len(df)}")
+    except confuse.exceptions.NotFoundError:
+        log.warn('No test_rate_min found -- no filtering on test_rate is being done')
 
     # Convert dtypes and make lists into strings so they can be saved to CSV
     # TODO [Low] Figure out a better way to deal with lists when saving dataframe
     log.info(f"Making dataframe ready for export")
+    df.sort_values("rate_ratio", ascending=False, inplace=True)
     df = df.convert_dtypes()
     df["registry_ids"] = df["registry_ids"].swifter.apply(", ".join)
     df["control_ids"] = df["control_ids"].swifter.apply(", ".join)
