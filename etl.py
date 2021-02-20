@@ -20,9 +20,9 @@ logging.basicConfig(
     datefmt="%m-%d %H:%M",
     filemode="w",
 )
-# TODO [Low] Make sure to log to file all silenced modules but silent in console
+# TODO [Low] Make sure to log to file all silenced modules but silent in console, or only show warn/errors
 # Silence logging for backend services not needed
-silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "numexpr"]
+silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "numexpr", "py4j", "urllib3"]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
@@ -57,7 +57,7 @@ def registry_etl(
     spark: SparkSession, config: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
 
-    registry_claims_bucket = config["buckets"]["registry_claims"].get("str")
+    registry_claims_bucket = config["buckets"]["registry_claims"].get("int")
     log.info(f"Registry claim bucket: {registry_claims_bucket}")
 
     registry_rdd = spark.read.parquet(
