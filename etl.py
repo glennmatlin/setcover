@@ -54,8 +54,12 @@ def icd_map(config_dx_map: confuse.core.Subview) -> pd.DataFrame:
 
 
 def registry_etl(
-    spark: SparkSession, registry_claims_bucket: str, icd_to_desc_map: pd.DataFrame
+    spark: SparkSession, config: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
+
+    registry_claims_bucket = config["buckets"]["registry_claims"].get("str")
+    log.info(f"Registry claim bucket: {registry_claims_bucket}")
+
     registry_rdd = spark.read.parquet(
         registry_claims_bucket  # TODO [TBD] May need .replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "registry_id")
@@ -73,6 +77,9 @@ def registry_etl(
         )  # TODO [Low] Move cut-off date into YAML
     )
     registry_id_count = registry_rdd.select("registry_id").distinct().count()
+    log.info(f"Registry ID Count: {registry_id_count}")
+
+    registry_count_min = config["etl"]["registry_count_min"].get("int")
     registry_df = (
         registry_rdd.select("registry_id", F.explode(F.col("dx_list")).alias("code"))
         .where(F.col("code").isNotNull())
@@ -82,8 +89,8 @@ def registry_etl(
             F.countDistinct(F.col("registry_id")).alias("registry_count"),
         )
         .where(
-            F.col("registry_count") > 3
-        )  # TODO [High] Get registry minimum into YAML
+            F.col("registry_count") > registry_count_min
+        )
         .withColumn("registry_rate", F.col("registry_count") / F.lit(registry_id_count))
     ).toPandas()
 
@@ -99,17 +106,21 @@ def registry_etl(
             0,
         )
     )
+    log.info(f"N Total Test: {n_total_test}")
     registry_df["n_total_test"] = n_total_test
     return registry_df
 
 
 def control_etl(
-    spark: SparkSession, control_claims_bucket: str, icd_to_desc_map: pd.DataFrame
+    spark: SparkSession, control: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
+    control_claims_bucket = config["buckets"]["control_claims"].get("str")
+    log.info(f"Control claim bucket: {control_claims_bucket}")
     control_rdd = spark.read.parquet(
         control_claims_bucket  # TODO [TBD] May need.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "control_id")
     control_id_count = control_rdd.select("control_id").distinct().count()
+    log.info(f"Control Sample ID Count: {control_id_count}")
     control_df = (
         control_rdd.select("control_id", F.explode(F.col("dx_list")).alias("code"))
         .where(F.col("code").isNotNull())
@@ -131,11 +142,12 @@ def control_etl(
             control_df["control_count"].iloc[0] / control_df["control_rate"].iloc[0], 0
         )
     )
+    log.info(f"N Total Control: {n_total_control}")
     control_df["n_total_control"] = n_total_control
     return control_df
 
 
-def merge_etl(
+def merge_etl(config: confuse.core.Configuration,
     registry_df: pd.DataFrame, control_df: pd.DataFrame, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
     # TODO [Medium] Move functionality into Spark
@@ -150,9 +162,10 @@ def merge_etl(
         inplace=True,
     )
     df["pval"] = get_p_values(df)
+    p_value_max = config["etl"]["p_value_max"].get("float")
     df.query(
-        "pval < 0.05", inplace=True
-    )  # TODO [High] Get value from config yaml
+        f"pval < {p_value_max}", inplace=True
+    )
     df["rate_test"] = df.n_test.divide(df.n_total_test)
     df["rate_control"] = df.n_control.divide(df.n_total_control)
     df["rate_ratio"] = df.rate_test.divide(df.rate_control)
@@ -168,12 +181,13 @@ def merge_etl(
     df["control_ids"] = df["control_ids"].apply(", ".join)
 
     # Drop ICD Codes with low rate in registry patients
+    test_rate_min = config["etl"]["test_rate_min"].get("float")
     df.query(
-        "rate_test>0.01"  # TODO [High] Get value from config yaml
+        f"rate_test>{test_rate_min}"
     ).sort_values("rate_ratio", ascending=False, inplace=True)
     log.info(f"Data set loaded length of {len(df)}")
     df = df[["code", "registry_ids", "control_ids"]]
-    log.info(f"Filtered out codes with rate_test<=0.01 length is now {len(df)}")
+    log.info(f"Filtered out codes with rate_test<={test_rate_min}; length is now {len(df)}")
     return df
 
 
@@ -181,21 +195,17 @@ def main(
     spark_: SparkSession, config_: confuse.core.Configuration,
 ) -> pd.DataFrame:
 
-    """YAML Config"""
-    registry_claims_bucket = config_["buckets"]["registry_claims"].get("str")
-    control_claims_bucket = config_["buckets"]["control_claims"].get("str")
-
     """ Get ICD10 Code Descriptions """
     icd_to_desc_map = icd_map(config_["clinical_mapping"]["dx"])
 
     """ ETL: Rare Disease Registry Patients """
-    registry_df = registry_etl(spark_, registry_claims_bucket, icd_to_desc_map)
+    registry_df = registry_etl(spark_, config_, icd_to_desc_map)
 
     """ ETL: Controlled Representative Sample"""
-    control_df = control_etl(spark_, control_claims_bucket, icd_to_desc_map)
+    control_df = control_etl(spark_, config_, icd_to_desc_map)
 
     """ ETL: Merging Registry and Control"""
-    merge_df = merge_etl(registry_df, control_df, icd_to_desc_map)
+    merge_df = merge_etl(config_, registry_df, control_df, icd_to_desc_map)
 
     return merge_df
 
@@ -236,3 +246,5 @@ if __name__ == "__main__":
     except (FileNotFoundError, TypeError, NameError) as e:
         log.error(traceback.format_exc())
         log.error(sys.exc_info()[2])
+
+    spark.stop()
