@@ -66,7 +66,7 @@ def main(config: confuse.core.Configuration) -> SetCoverProblem:
     # TODO [Medium] Run ETL as part of the main run.py
 
     """ Load """
-    input_bucket = config["buckets"]["input"].get(str)
+    input_bucket = config["buckets"]["etl_output"].get(str)
     log.info(f"Building problem data from bucket {input_bucket}")
     data = make_data(input_bucket)
     log.info(f"Loading the data into problem")
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         log.error("main() failed, possible issue with SparkSession")
 
     """ Export Solution """
-    output_bucket = config["buckets"]["output"].get(str)
+    output_bucket = config["buckets"]["solution_output"].get(str)
     log.info(f"Exporting solution to bucket{output_bucket}")
     problem_solution = pd.DataFrame(
         problem.cover_solution,

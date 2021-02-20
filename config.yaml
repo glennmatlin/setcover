@@ -25,7 +25,8 @@ run_date: "202110109"
 buckets:
   registry_claims: "s3://pulse.dev/data/ALXN/aHUS-Predictive-Undiagnosed/20201203/target_claims_df.parquet"
   control_claims: "s3://pulse.dev/data/ALXN/aHUS-Predictive/20201204/control_claims_df.parquet"
-  output: "s3://kh-data/setcover/Alexion/aHUS/etl/20201219_etl_df.parquet"
+  etl_output: "s3://kh-data/setcover/Alexion/aHUS/etl/20201219_etl_df.parquet"
+  solution_output: "s3://kh-data/setcover/Alexion/aHUS/etl/20201219_etl_df.parquet"
 #  reference: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201209/reference_df.parquet/"
 #  cohort: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201210/target_cohort_df.parquet/"
 etl:
@@ -44,3 +45,4 @@ clinical_mapping:
     desc_field: "CODE_DESCRIPTION"
 problem:
   limit: 200
+
