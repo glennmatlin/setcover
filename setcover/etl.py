@@ -116,7 +116,7 @@ def registry_etl(
 
 
 def control_etl(
-    spark: SparkSession, control: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
+    spark: SparkSession, config: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
     control_claims_bucket = config["buckets"]["control_claims"].get(str)
     log.info(f"Control claim bucket: {control_claims_bucket}")
