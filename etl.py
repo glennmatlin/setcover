@@ -42,12 +42,12 @@ log.addHandler(ch), log.addHandler(fh)
 
 def icd_map(config_dx_map: confuse.core.Subview) -> pd.DataFrame:
     # TODO [Medium] Put PandasDF into SparkDF
-    icd_to_desc_map = pd.read_csv(config_dx_map["bucket"].get("str")).rename(
+    icd_to_desc_map = pd.read_csv(config_dx_map["bucket"].get(str)).rename(
         index=str,
         columns={
-            config_dx_map["code_field"].get("str"): "code",
-            config_dx_map["desc_field"].get("str"): "code_description",
-            config_dx_map["category_field"].get("str"): "code_category",
+            config_dx_map["code_field"].get(str): "code",
+            config_dx_map["desc_field"].get(str): "code_description",
+            config_dx_map["category_field"].get(str): "code_category",
         },
     )[["code", "code_description", "code_category"]]
     return icd_to_desc_map
@@ -57,9 +57,10 @@ def registry_etl(
     spark: SparkSession, config: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
 
-    registry_claims_bucket = config["buckets"]["registry_claims"].get("int")
+    registry_claims_bucket = config["buckets"]["registry_claims"].get(int)
     log.info(f"Registry claim bucket: {registry_claims_bucket}")
 
+    log.info(f"Reading in registry claims data")
     registry_rdd = spark.read.parquet(
         registry_claims_bucket.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "registry_id")
@@ -79,7 +80,8 @@ def registry_etl(
     registry_id_count = registry_rdd.select("registry_id").distinct().count()
     log.info(f"Registry ID Count: {registry_id_count}")
 
-    registry_count_min = config["etl"]["registry_count_min"].get("int")
+    registry_count_min = config["etl"]["registry_count_min"].get(int)
+    log.info(f"ETL of registry data and bringing to pandas")
     registry_df = (
         registry_rdd.select("registry_id", F.explode(F.col("dx_list")).alias("code"))
         .where(F.col("code").isNotNull())
@@ -95,6 +97,7 @@ def registry_etl(
     ).toPandas()
 
     # TODO [Medium] Move below this into Spark
+    log.info(f"Registry ETL pandas operations")
     registry_df.drop(
         registry_df.index[~registry_df.code.isin(icd_to_desc_map.code)], inplace=True
     )
@@ -114,13 +117,15 @@ def registry_etl(
 def control_etl(
     spark: SparkSession, control: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
-    control_claims_bucket = config["buckets"]["control_claims"].get("str")
+    control_claims_bucket = config["buckets"]["control_claims"].get(str)
     log.info(f"Control claim bucket: {control_claims_bucket}")
+    log.info(f"Loading control data")
     control_rdd = spark.read.parquet(
         control_claims_bucket.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "control_id")
     control_id_count = control_rdd.select("control_id").distinct().count()
     log.info(f"Control Sample ID Count: {control_id_count}")
+    log.info(f"Bringing control sample into pandas DF")
     control_df = (
         control_rdd.select("control_id", F.explode(F.col("dx_list")).alias("code"))
         .where(F.col("code").isNotNull())
@@ -133,6 +138,7 @@ def control_etl(
     ).toPandas()
 
     # TODO [Medium] Move below this into Spark
+    log.info(f"Control sample pandas ETL operations")
     control_df.drop(
         control_df.index[~control_df.code.isin(icd_to_desc_map.code)], inplace=True
     )
@@ -151,7 +157,9 @@ def merge_etl(config: confuse.core.Configuration,
     registry_df: pd.DataFrame, control_df: pd.DataFrame, icd_to_desc_map: pd.DataFrame
 ) -> pd.DataFrame:
     # TODO [Medium] Move functionality into Spark
+    log.info(f"Merging data frames")
     df = pd.merge(registry_df, control_df, how="inner", on="code")
+    log.info(f"Merge complete, performing ETL tasks")
     df.query("registry_count != 0 & control_count != 0", inplace=True)
     df.drop(
         labels=["registry_rate", "control_rate"], axis="columns", inplace=True
@@ -161,14 +169,16 @@ def merge_etl(config: confuse.core.Configuration,
         axis="columns",
         inplace=True,
     )
+    log.info(f"P-Value statistical testing")
     df["pval"] = get_p_values(df)
-    p_value_max = config["etl"]["p_value_max"].get("float")
+    p_value_max = config["etl"]["p_value_max"].get(float)
     df.query(
         f"pval < {p_value_max}", inplace=True
     )
     df["rate_test"] = df.n_test.divide(df.n_total_test)
     df["rate_control"] = df.n_control.divide(df.n_total_control)
     df["rate_ratio"] = df.rate_test.divide(df.rate_control)
+    log.info(f"Merging ICD10 Code Map")
     df = df.merge(
         icd_to_desc_map, on="code", how="inner"
     )  # Remove Non-ICD10 codes with inner join
@@ -176,18 +186,20 @@ def merge_etl(config: confuse.core.Configuration,
 
     # Convert dtypes and make lists into strings for saving to file
     # TODO [Medium] Figure out a better way to save and deal with lists
-    df = df.convert_dtypes()
-    df["registry_ids"] = df["registry_ids"].apply(", ".join)
-    df["control_ids"] = df["control_ids"].apply(", ".join)
-
     # Drop ICD Codes with low rate in registry patients
-    test_rate_min = config["etl"]["test_rate_min"].get("float")
+    test_rate_min = config["etl"]["test_rate_min"].get(float)
+    log.info(f"Data set has length of {len(df)}")
+    log.info(f"Filtered out codes with rate_test<={test_rate_min}")
     df.query(
         f"rate_test>{test_rate_min}"
     ).sort_values("rate_ratio", ascending=False, inplace=True)
-    log.info(f"Data set loaded length of {len(df)}")
     df = df[["code", "registry_ids", "control_ids"]]
-    log.info(f"Filtered out codes with rate_test<={test_rate_min}; length is now {len(df)}")
+    log.info(f"DF length is now {len(df)}")
+
+    log.info(f"Making dataframe ready for export")
+    df = df.convert_dtypes()
+    df["registry_ids"] = df["registry_ids"].apply(", ".join)
+    df["control_ids"] = df["control_ids"].apply(", ".join)
     return df
 
 
@@ -230,6 +242,7 @@ if __name__ == "__main__":
     config.set_file("config.yaml")
 
     """ ETL Operations """
+    log.info(f"Running main()")
     try:
         df = main(
             spark, config
@@ -237,7 +250,8 @@ if __name__ == "__main__":
     except ValueError:
         log.error("main() failed, possible issue with SparkSession")
 
-    output_bucket = config["buckets"]["output"].get("str")
+    output_bucket = config["buckets"]["output"].get(str)
+    log.info(f"Attempting to export dataframe to {output_bucket}")
     try:
         df.to_parquet(
             output_bucket,
@@ -247,5 +261,5 @@ if __name__ == "__main__":
         log.error(f"{e}")
         log.error(traceback.format_exc())
         log.error(sys.exc_info()[2])
-
+    log.info(f"Export successful!")
     spark.stop()
