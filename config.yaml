@@ -27,8 +27,6 @@ buckets:
   control_claims: "s3://pulse.dev/data/ALXN/aHUS-Predictive/20201204/control_claims_df.parquet"
   etl_output: "s3://kh-data/setcover/Alexion/aHUS/etl/20210220/test_rate-05/etl_df.parquet"
   solution_output: "s3://kh-data/setcover/Alexion/aHUS/problem_solution/20210220/test_rate-05/problem_solution.csv"
-#  reference: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201209/reference_df.parquet/"
-#  cohort: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20201210/target_cohort_df.parquet/"
 etl:
   registry_count_min: 3
   p_value_max: 0.05

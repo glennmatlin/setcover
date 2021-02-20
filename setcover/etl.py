@@ -267,7 +267,7 @@ if __name__ == "__main__":
     except ValueError:
         log.error("main() failed, possible issue with SparkSession")
 
-    output_bucket = config["buckets"]["output"].get(str)
+    output_bucket = config["buckets"]["etl_output"].get(str)
     log.info(f"Attempting to export dataframe to {output_bucket}")
     try:
         df.to_parquet(
