@@ -35,7 +35,7 @@ ch.setLevel(logging.ERROR)
 # Set a format which is simpler for console use
 ch.setFormatter(logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s"))
 # Create file handlers for info and debug logs
-fh = logging.FileHandler("run.log")
+fh = logging.FileHandler("etl.log")
 # Add handlers to logger
 log.addHandler(ch), log.addHandler(fh)
 
@@ -123,6 +123,7 @@ def control_etl(
     control_rdd = spark.read.parquet(
         control_claims_bucket.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "control_id")
+    log.info(f"Counting records in loaded data")
     control_id_count = control_rdd.select("control_id").distinct().count()
     log.info(f"Control Sample ID Count: {control_id_count}")
     log.info(f"Bringing control sample into pandas DF")
