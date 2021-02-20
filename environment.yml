@@ -14,5 +14,6 @@ dependencies:
   - fsspec
   - fastparquet
   - confuse
+  - swifter
 # pip:
   # --upgrade --no-deps --force-reinstall git+https://github.com/glennmatlin/setcover.git@ec2'

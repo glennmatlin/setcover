@@ -9,6 +9,7 @@ import traceback
 import confuse
 import pandas as pd
 import pyspark.sql.functions as F
+import swifter
 from pyspark.conf import SparkConf
 from pyspark.sql.session import SparkSession
 
@@ -23,7 +24,16 @@ logging.basicConfig(
 )
 # TODO [Low] Make sure to log to file all silenced modules but silent in console, or only show warn/errors
 # Silence logging for backend services not needed
-silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "numexpr", "py4j", "urllib3"]
+silenced_modules = [
+    "botocore",
+    "aiobotocore",
+    "s3fs",
+    "fsspec",
+    "asyncio",
+    "numexpr",
+    "py4j",
+    "urllib3",
+]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
@@ -55,7 +65,9 @@ def icd_map(config_dx_map: confuse.core.Subview) -> pd.DataFrame:
 
 
 def registry_etl(
-    spark: SparkSession, config: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
+    spark: SparkSession,
+    config: confuse.core.Configuration,
+    icd_to_desc_map: pd.DataFrame,
 ) -> pd.DataFrame:
 
     registry_claims_bucket = config["buckets"]["registry_claims"].get(str)
@@ -91,9 +103,7 @@ def registry_etl(
             F.collect_set(F.col("registry_id")).alias("registry_ids"),
             F.countDistinct(F.col("registry_id")).alias("registry_count"),
         )
-        .where(
-            F.col("registry_count") > registry_count_min
-        )
+        .where(F.col("registry_count") > registry_count_min)
         .withColumn("registry_rate", F.col("registry_count") / F.lit(registry_id_count))
     ).toPandas()
 
@@ -116,7 +126,9 @@ def registry_etl(
 
 
 def control_etl(
-    spark: SparkSession, config: confuse.core.Configuration, icd_to_desc_map: pd.DataFrame
+    spark: SparkSession,
+    config: confuse.core.Configuration,
+    icd_to_desc_map: pd.DataFrame,
 ) -> pd.DataFrame:
     control_claims_bucket = config["buckets"]["control_claims"].get(str)
     log.info(f"Control claim bucket: {control_claims_bucket}")
@@ -155,58 +167,63 @@ def control_etl(
     return control_df
 
 
-def merge_etl(config: confuse.core.Configuration,
-    registry_df: pd.DataFrame, control_df: pd.DataFrame, icd_to_desc_map: pd.DataFrame
+def merge_etl(
+    config: confuse.core.Configuration,
+    registry_df: pd.DataFrame,
+    control_df: pd.DataFrame,
+    icd_to_desc_map: pd.DataFrame,
 ) -> pd.DataFrame:
     # TODO [Medium] Move functionality into Spark
+    """ Merge DataFrames """
     log.info(f"Merging data frames")
     df = pd.merge(registry_df, control_df, how="inner", on="code")
     log.info(f"Merge complete, performing ETL tasks")
+    log.info(f"DF Length: {len(df)}; Dropping zero counts")
     df.query("registry_count != 0 & control_count != 0", inplace=True)
-    df.drop(
-        labels=["registry_rate", "control_rate"], axis="columns", inplace=True
-    )
+    log.info(f"New DF Length: {len(df)}")
+    df.drop(labels=["registry_rate", "control_rate"], axis="columns", inplace=True)
     df.rename(
         mapper={"registry_count": "n_test", "control_count": "n_control"},
         axis="columns",
         inplace=True,
     )
-    log.info(f"P-Value statistical testing")
-    df["pval"] = get_p_values(df)
-    p_value_max = config["etl"]["p_value_max"].get(float)
-    df.query(
-        f"pval < {p_value_max}", inplace=True
-    )
     df["rate_test"] = df.n_test.divide(df.n_total_test)
     df["rate_control"] = df.n_control.divide(df.n_total_control)
     df["rate_ratio"] = df.rate_test.divide(df.rate_control)
+
+    """ Filter based on P-Values """
+    log.info(f"P-Value statistical testing")
+    df["pval"] = get_p_values(df)
+    p_value_max = config["etl"]["p_value_max"].get(float)
+    log.info(f"DF Length: {len(df)}; Dropping codes with P-value under {p_value_max}")
+    df.query(f"pval < {p_value_max}", inplace=True)
+    log.info(f"New DF Length: {len(df)}")
+
+    """ Remove Non-ICD10 Codes """
     log.info(f"Merging ICD10 Code Map")
-    df = df.merge(
-        icd_to_desc_map, on="code", how="inner"
-    )  # Remove Non-ICD10 codes with inner join
+    df = df.merge(icd_to_desc_map, on="code", how="inner")
     df.sort_values(["rate_ratio"], ascending=False, inplace=True)
 
-    # Convert dtypes and make lists into strings for saving to file
-    # TODO [Medium] Figure out a better way to save and deal with lists
-    # Drop ICD Codes with low rate in registry patients
+    """ Drop ICD Codes with low rate in registry patients """
     test_rate_min = config["etl"]["test_rate_min"].get(float)
     log.info(f"Data set has length of {len(df)}")
     log.info(f"Filtered out codes with rate_test<={test_rate_min}")
-    df.query(
-        f"rate_test>{test_rate_min}"
-    ).sort_values("rate_ratio", ascending=False, inplace=True)
-    df = df[["code", "registry_ids", "control_ids"]]
+    df.query(f"rate_test>{test_rate_min}", inplace=True)
+    df.sort_values("rate_ratio", ascending=False, inplace=True)
     log.info(f"DF length is now {len(df)}")
 
+    # Convert dtypes and make lists into strings so they can be saved to CSV
+    # TODO [Low] Figure out a better way to deal with lists when saving dataframe
     log.info(f"Making dataframe ready for export")
     df = df.convert_dtypes()
-    df["registry_ids"] = df["registry_ids"].apply(", ".join)
-    df["control_ids"] = df["control_ids"].apply(", ".join)
+    df["registry_ids"] = df["registry_ids"].swifter.apply(", ".join)
+    df["control_ids"] = df["control_ids"].swifter.apply(", ".join)
     return df
 
 
 def main(
-    spark_: SparkSession, config_: confuse.core.Configuration,
+    spark_: SparkSession,
+    config_: confuse.core.Configuration,
 ) -> pd.DataFrame:
 
     """ Get ICD10 Code Descriptions """
@@ -246,9 +263,7 @@ if __name__ == "__main__":
     """ ETL Operations """
     log.info(f"Running main()")
     try:
-        df = main(
-            spark, config
-        )
+        df = main(spark, config)
     except ValueError:
         log.error("main() failed, possible issue with SparkSession")
 

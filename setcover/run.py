@@ -3,8 +3,10 @@
 
 import logging
 from typing import List
+
 import confuse
 import pandas as pd
+
 from setcover.problem import SetCoverProblem, Subset
 
 """Logging"""
@@ -48,6 +50,8 @@ def make_data(input_path: str, filetype="parquet") -> List[Subset]:
     else:
         raise TypeError
     log.info(f"Fixing issue with data")
+
+    # TODO [HIGH] USE SWIFTR.APPLY !!!
     df["control_ids"] = (
         df["control_ids"].str.split(",").apply(lambda row: [s.strip() for s in row])
     )
