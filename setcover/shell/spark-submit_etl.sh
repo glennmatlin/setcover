@@ -1,6 +1,6 @@
 #!/bin/sh
 
 spark-submit \
-        --class org.apache.spark.examples.SparkPi \
-        /opt/spark/examples/src/main/python/pi.py \
+        --class setcover.etl \
+        /home/jovyan/dev/setcover/etl.py \
         12000

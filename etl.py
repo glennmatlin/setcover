@@ -61,7 +61,7 @@ def registry_etl(
     log.info(f"Registry claim bucket: {registry_claims_bucket}")
 
     registry_rdd = spark.read.parquet(
-        registry_claims_bucket  # TODO [TBD] May need .replace("s3:", "s3a:")
+        registry_claims_bucket.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "registry_id")
 
     # Select claims around patient reference date and filter out claims before 2017 to remove ICD9 codes
@@ -117,7 +117,7 @@ def control_etl(
     control_claims_bucket = config["buckets"]["control_claims"].get("str")
     log.info(f"Control claim bucket: {control_claims_bucket}")
     control_rdd = spark.read.parquet(
-        control_claims_bucket  # TODO [TBD] May need.replace("s3:", "s3a:")
+        control_claims_bucket.replace("s3:", "s3a:")
     ).withColumnRenamed("patient_id", "control_id")
     control_id_count = control_rdd.select("control_id").distinct().count()
     log.info(f"Control Sample ID Count: {control_id_count}")
@@ -244,6 +244,7 @@ if __name__ == "__main__":
             index=False,
         )
     except (FileNotFoundError, TypeError, NameError) as e:
+        log.error(f"{e}")
         log.error(traceback.format_exc())
         log.error(sys.exc_info()[2])
 
