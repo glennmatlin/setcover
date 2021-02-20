@@ -230,7 +230,7 @@ if __name__ == "__main__":
         spark = (
             SparkSession.builder.config(conf=conf)
             .master("local")
-            .appName("setcover")
+            .appName("setcover.etl")
             .getOrCreate()
         )
         spark.sparkContext.setLogLevel("OFF")
