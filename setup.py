@@ -7,7 +7,7 @@ setup(
             'setcover_run = run:main',
         ],
     },
-    version="0.4.2",
+    version="0.4.3",
     packages=find_packages(),
     description="setcover",
     author="Glenn Matlin",
