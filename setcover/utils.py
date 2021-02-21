@@ -1,7 +1,16 @@
-from typing import List
+from typing import List, Iterable
 
 from scipy.stats import chi2_contingency, fisher_exact
 from tqdm.auto import tqdm
+
+
+def flatten_nest(nest: Iterable[Iterable[object]], output="set") -> Iterable[object]:
+    if output == "set":
+        return set([item for sublist in nest for item in sublist])
+    elif output == "list":
+        return [item for sublist in nest for item in sublist]
+    else:
+        raise TypeError("Output must be 'set' or 'list'")
 
 
 def get_p_values(
