@@ -5,7 +5,6 @@ import logging
 from typing import List
 
 import confuse
-# ## Imports
 import pandas as pd
 
 from setcover.problem import SetCoverProblem, Subset
@@ -19,7 +18,16 @@ logging.basicConfig(
 )
 # TODO Make sure to log to file all silenced modules but silent in console
 # Silence logging for backend services not needed
-silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "numexpr"]
+silenced_modules = [
+    "botocore",
+    "aiobotocore",
+    "s3fs",
+    "fsspec",
+    "asyncio",
+    "numexpr",
+    "pyj4",
+    "urllib3",
+]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
@@ -37,15 +45,6 @@ fh = logging.FileHandler("run.log")
 log.addHandler(ch), log.addHandler(fh)
 
 
-"""Load configuration from .yaml file."""
-config = confuse.Configuration("setcover", __name__)
-config.set_file("config.yaml")
-input_bucket = config["buckets"]["input"].get(str)
-output_bucket = config["buckets"]["output"].get(str)
-problem_limit = config["problem"]["limit"].get(int)
-print(input_bucket, output_bucket)
-
-
 def make_data(input_path: str, filetype="parquet") -> List[Subset]:
     """
     prepares data to be used in set cover problem using pandas
@@ -56,14 +55,13 @@ def make_data(input_path: str, filetype="parquet") -> List[Subset]:
     log.info(f"Reading in data from {input_path}")
     if filetype == "parquet":
         df = pd.read_parquet(
-            input_path, columns=["code", "registry_ids", "control_ids", "rate_test"]
+            input_path, columns=["code", "registry_ids", "control_ids"]
         )
     else:
         raise TypeError
-    log.info(f"Data set loaded length of {len(df)}")
-    df = df.query("rate_test>0.01")[["code", "registry_ids", "control_ids"]]
-    log.info(f"Filtered out codes with rate_test<=0.01 length is now {len(df)}")
     log.info(f"Fixing issue with data")
+
+    # TODO [HIGH] USE SWIFTR.APPLY !!!
     df["control_ids"] = (
         df["control_ids"].str.split(",").apply(lambda row: [s.strip() for s in row])
     )
@@ -78,14 +76,65 @@ def make_data(input_path: str, filetype="parquet") -> List[Subset]:
 
 
 # TODO Mock s3 data objects for testing
-def main():
-    log.info(f"Making data using input bucket")
+def main(config: confuse.core.Configuration) -> SetCoverProblem:
+    # TODO [Medium] Run ETL as part of the main run.py
+
+    """ Load """
+    input_bucket = config["buckets"]["etl_output"].get(str)
+    log.info(f"Building problem data from bucket {input_bucket}")
     data = make_data(input_bucket)
     log.info(f"Loading the data into problem")
     problem = SetCoverProblem(data)
+
+    """ Solve """
     log.info(f"Solving problem")
-    problem.solve(limit=problem_limit)
-    log.info(f"Exporting solution")
+    problem.solve(limit=config["problem"]["limit"].get(int))
+
+    return problem
+
+
+if __name__ == "__main__":
+    # import cProfile
+    #
+    # cProfile.run("main()", "run_output.dat")
+    #
+    # import pstats
+    #
+    # with open("run_output_time.txt", "w") as f:
+    #     p = pstats.Stats("run_output.dat", stream=f)
+    #     p.sort_stats("time").print_stats()
+    # with open("run_output_calls.txt", "w") as f:
+    #     p = pstats.Stats("run_output.dat", stream=f)
+    #     p.sort_stats("calls").print_stats()
+
+    # """Spark Configuration"""
+    # try:
+    #     conf = SparkConf()
+    #     conf.set("spark.logConf", "true")
+    #     spark = (
+    #         SparkSession.builder.config(conf=conf)
+    #         .master("local")
+    #         .appName("setcover.run")
+    #         .getOrCreate()
+    #     )
+    #     spark.sparkContext.setLogLevel("OFF")
+    # except ValueError:
+    #     log.warn("Existing SparkSession detected: Using existing SparkSession")
+
+    """ Load YAML Configuration """
+    config = confuse.Configuration("setcover", __name__)
+    config.set_file("config.yaml")
+
+    """ Set Cover Problem """
+    log.info(f"Running main()")
+    try:
+        problem = main(config)
+    except ValueError:
+        log.error("main() failed, possible issue with SparkSession")
+
+    """ Export Solution """
+    output_bucket = config["buckets"]["solution_output"].get(str)
+    log.info(f"Exporting solution to bucket{output_bucket}")
     problem_solution = pd.DataFrame(
         problem.cover_solution,
         columns=[
@@ -95,19 +144,4 @@ def main():
             "new_covered_exclusive",
         ],
     )
-    problem_solution.to_csv(output_bucket)
-
-
-if __name__ == "__main__":
-    import cProfile
-
-    cProfile.run("main()", "run_output.dat")
-
-    import pstats
-
-    with open("run_output_time.txt", "w") as f:
-        p = pstats.Stats("run_output.dat", stream=f)
-        p.sort_stats("time").print_stats()
-    with open("run_output_calls.txt", "w") as f:
-        p = pstats.Stats("run_output.dat", stream=f)
-        p.sort_stats("calls").print_stats()
+    problem_solution.to_csv(output_bucket, index=False)
