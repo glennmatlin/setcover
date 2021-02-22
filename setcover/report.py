@@ -29,24 +29,35 @@ class Report:
         self.metrics_df = self.get_metrics_df()
         self.plot = self.visualization()
 
-    def _get_metrics(self, n_codes: int):
-        codes_used = self.codes[:n_codes]
-        df_ = self.df.loc[codes_used]
+    # def _get_metrics(self, n_codes: int):
+    #     codes_used = self.codes[:n_codes]
+    #     df_ = self.df.loc[codes_used]
+    #     registry_ids = flatten_nest(df_.registry_ids.to_list())
+    #     registry_count = len(registry_ids)
+    #     control_ids = flatten_nest(df_.control_ids.to_list())
+    #     control_count = len(control_ids)
+    #     return n_codes, codes_used[-1], registry_count, control_count
+
+    @staticmethod
+    def _get_metrics(df, codes):
+        df_ = df.loc[codes]
         registry_ids = flatten_nest(df_.registry_ids.to_list())
         registry_count = len(registry_ids)
         control_ids = flatten_nest(df_.control_ids.to_list())
         control_count = len(control_ids)
-        return n_codes, codes_used[-1], registry_count, control_count
+        return len(codes), codes[-1], registry_count, control_count
 
     def get_metrics_df(self) -> pd.DataFrame:
         if self.codes_limit:
             codes_range = list(range(1, self.codes_limit + 1))
         else:
             codes_range = list(range(1, len(self.codes) + 1))
+        codes_ = [self.codes[:n] for n in codes_range]
+        df_ = repeat(self.df)
         with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
             pool = list(
                 tqdm(
-                    executor.map(self._get_metrics, codes_range),
+                    executor.map(self._get_metrics, df_, codes_),
                     total=len(codes_range),
                     desc="Calculating Metrics: Highest Rate Ratio Codes",
                     leave=True,
@@ -140,7 +151,7 @@ if __name__ == "__main__":
         .tolist()
     )
 
-    """ Main Run """
+    """ Run """
     solution_bucket: str = "s3://"
     plot_title: str = "Test"
     solution_codes = pd.read_csv(solution_bucket).to_csv
