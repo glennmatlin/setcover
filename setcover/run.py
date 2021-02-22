@@ -18,7 +18,16 @@ logging.basicConfig(
 )
 # TODO Make sure to log to file all silenced modules but silent in console
 # Silence logging for backend services not needed
-silenced_modules = ["botocore", "aiobotocore", "s3fs", "fsspec", "asyncio", "numexpr", "pyj4", "urllib3"]
+silenced_modules = [
+    "botocore",
+    "aiobotocore",
+    "s3fs",
+    "fsspec",
+    "asyncio",
+    "numexpr",
+    "pyj4",
+    "urllib3",
+]
 for module in silenced_modules:
     logging.getLogger(module).setLevel(logging.CRITICAL)
 
@@ -34,6 +43,7 @@ ch.setFormatter(logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s"))
 fh = logging.FileHandler("run.log")
 # Add handlers to logger
 log.addHandler(ch), log.addHandler(fh)
+
 
 def make_data(input_path: str, filetype="parquet") -> List[Subset]:
     """
@@ -81,6 +91,7 @@ def main(config: confuse.core.Configuration) -> SetCoverProblem:
     problem.solve(limit=config["problem"]["limit"].get(int))
 
     return problem
+
 
 if __name__ == "__main__":
     # import cProfile
@@ -133,4 +144,4 @@ if __name__ == "__main__":
             "new_covered_exclusive",
         ],
     )
-    problem_solution.to_csv(output_bucket)
+    problem_solution.to_csv(output_bucket, index=False)

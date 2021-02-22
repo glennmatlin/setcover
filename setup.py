@@ -3,8 +3,8 @@ from setuptools import find_packages, setup
 setup(
     name="setcover",
     entry_points={
-        'console_scripts': [
-            'setcover_run = run:main',
+        "console_scripts": [
+            "setcover_run = run:main",
         ],
     },
     version="0.4.3",

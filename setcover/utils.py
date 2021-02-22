@@ -4,7 +4,7 @@ from scipy.stats import chi2_contingency, fisher_exact
 from tqdm.auto import tqdm
 
 
-def flatten_nest(nest: Iterable[Iterable[object]], output="set") -> Iterable[object]:
+def flatten_nest(nest: Iterable[Iterable], output="set") -> Iterable:
     if output == "set":
         return set([item for sublist in nest for item in sublist])
     elif output == "list":
