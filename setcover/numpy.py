@@ -40,23 +40,22 @@ log.addHandler(ch), log.addHandler(fh)
 class NumpySetCoverProblem:
     """Test push"""
 
-    def __init__(self):
-        self.df: pd.DataFrame
+    def __init__(self, df: pd.DataFrame):
+        self.df = df
         self.inclusive_total: int = self.df.iloc[0]["n_total_test"]  # TODO
         self.exclusive_total: int = self.df.iloc[0]["n_total_control"]  # TODO
         self.all_total: int = self.inclusive_total + self.exclusive_total
 
-        self.include_elements: Set[object] = flatten_nest(self.df.set_include.to_list())
-        self.exclude_elements: Set[object] = flatten_nest(self.df.set_exclude.to_list())
+        self.include_elements: List[object] = flatten_nest(self.df.set_include.to_list(), output="list")
+        self.exclude_elements: List[object] = flatten_nest(self.df.set_exclude.to_list(), output="list")
+        self.all_elements: List[object] = self.include_elements + self.exclude_elements
 
         self.n_include: int = len(self.include_elements)
         self.n_exclude: int = len(self.exclude_elements)
         self.n_all: int = self.n_include + self.n_exclude
 
-        self.token_map: Dict[str, int] = {}  # TODO
-        self.idx_map: Dict[int, str] = reverse_dictionary(self.token_map)
-
-        self.label_array: np.array = np.concatenate(
+        # Array representation of sets
+        self.label_array: np.ndarray = np.concatenate(
             [np.ones(self.n_include), np.zeros(self.n_exclude)]
         ).astype("?")
         self.cover_array: np.array = np.zeros(self.n_all).astype("?")
@@ -67,6 +66,9 @@ class NumpySetCoverProblem:
             self.df.apply(lambda row: self._make_subset_array(row), axis=1).to_list(),
             self.subset_array_dtypes,
         )  # TODO
+
+        self.token_map: Dict[str, int] # TODO
+        self.idx_map: Dict[int, str] = reverse_dictionary(self.token_map)
         self.cover_solution: List[str]
 
     def _get_idxs(self, tokens) -> List[int]:
