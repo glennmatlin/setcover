@@ -42,34 +42,33 @@ class NumpySetCoverProblem:
 
     def __init__(self, df: pd.DataFrame):
         self.df = df
-        self.inclusive_total: int = self.df.iloc[0]["n_total_test"]  # TODO
-        self.exclusive_total: int = self.df.iloc[0]["n_total_control"]  # TODO
-        self.all_total: int = self.inclusive_total + self.exclusive_total
+        # self.inclusive_total: int = self.df.iloc[0]["n_total_test"]  # TODO
+        # self.exclusive_total: int = self.df.iloc[0]["n_total_control"]  # TODO
+        # self.all_total: int = self.inclusive_total + self.exclusive_total
 
-        self.include_elements: List[object] = flatten_nest(self.df.set_include.to_list(), output="list")
-        self.exclude_elements: List[object] = flatten_nest(self.df.set_exclude.to_list(), output="list")
+        self.include_elements: List[object] = list(
+            flatten_nest(self.df.set_include.to_list())
+        )
+        self.exclude_elements: List[object] = list(
+            flatten_nest(self.df.set_exclude.to_list())
+        )
         self.all_elements: List[object] = self.include_elements + self.exclude_elements
 
         self.n_include: int = len(self.include_elements)
         self.n_exclude: int = len(self.exclude_elements)
         self.n_all: int = self.n_include + self.n_exclude
 
+        self.token_map: Dict[str, int] = {e: i for i, e in enumerate(self.all_elements)}
+        self.idx_map: Dict[int, str] = {i: e for i, e in enumerate(self.all_elements)}
+        self.cover_solution: List[str] = []
+
         # Array representation of sets
         self.label_array: np.ndarray = np.concatenate(
             [np.ones(self.n_include), np.zeros(self.n_exclude)]
         ).astype("?")
-        self.cover_array: np.array = np.zeros(self.n_all).astype("?")
-        self.subset_array_dtypes = np.dtype(
-            [("set_id", "S7"), ("set_array", "?", (1, self.n_all))]
-        )
-        self.subset_arrays: np.array[np.array[bool]] = np.rec.array(
-            self.df.apply(lambda row: self._make_subset_array(row), axis=1).to_list(),
-            self.subset_array_dtypes,
-        )  # TODO
-
-        self.token_map: Dict[str, int] # TODO
-        self.idx_map: Dict[int, str] = reverse_dictionary(self.token_map)
-        self.cover_solution: List[str]
+        self.cover_array: np.ndarray = np.zeros(self.n_all).astype("?")
+        # self.include_array: np.ndarray = self._make_subset_array("set_include")
+        # self.exclude_array: np.ndarray = self._make_subset_array("set_exclude")
 
     def _get_idxs(self, tokens) -> List[int]:
         return [self.token_map[token] for token in tokens]
@@ -77,11 +76,16 @@ class NumpySetCoverProblem:
     def _get_tokens(self, idxs) -> List[str]:
         return [self.idx_map[idx] for idx in idxs]
 
-    def _make_subset_array(self, row, id_field="set_id", token_field="set_tokens"):
-        output = (row[id_field], np.zeros(self.n_all))
-        dx_positive_idxs = self._get_idxs(row[token_field])
-        output[1][dx_positive_idxs] = 1.0
+    def _tokens_to_array(self, tokens: List[str]) -> np.ndarray:
+        output = np.zeros(self.n_all).astype("?")
+        pos_idxs = self._get_idxs(tokens)
+        output[pos_idxs] = True
+
         return output
+
+    def _make_subset_array(self, token_fields: List[str]):
+        # TODO: Use a simpler data structure here, maybe Dict[set_id,array_of_arrays]
+        pass
 
     def _calculate_subset_weight(self, subset_array):
         """ Calculate the weight of a set """
