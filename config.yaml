@@ -1,11 +1,45 @@
 appName: setcover
 logLevel: WARN
 
-# TODO Make PyYAML Constructors to use variables
-# TODO Replace with current date or hash
-run_id: "20211011"
+# TODO [Medium] Make PyYAML Constructors to use variables and incorporate run env and date
+# """ Run Environment """
+# _run_env = config["run_env"].get("str")
+# if _run_env == "prod":
+#     bucket_name = "pulse-prod"
+#     output_bucket_name = "pulse-output"
+# elif _run_env == "dev":
+#     bucket_name = "pulse.dev"
+#     output_bucket_name = "pulse.dev"
+# TODO [Medium] Use run date in ETL
+# """ Run Date """
+# _run_date_input = config["run_date"].get("str")
+# if not _run_date_input:
+#     run_datetime = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+# else:
+#     run_datetime = datetime.datetime.strptime(_run_date_input, "%Y-%m-%d")
+# run_date = run_datetime.date()
+# run_date_str = run_date.strftime("%Y%m%d")
+
+run_env: "dev"
+run_date: "20210220"
 buckets:
-  input: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/merged_df.parquet"
-  output: "s3://kh-data/glenn_sandbox/adhoc_requests/ALXN/aHUS-Predictive/20210210/problem_solution.csv"
+  registry_claims: "s3://pulse.dev/data/ALXN/aHUS-Predictive-Undiagnosed/20201203/target_claims_df.parquet"
+  control_claims: "s3://pulse.dev/data/ALXN/aHUS-Predictive/20201204/control_claims_df.parquet"
+  etl_output: "s3://kh-data/setcover/Alexion/aHUS/etl/20210220/test_rate-05/etl_df.parquet"
+  solution_output: "s3://kh-data/setcover/Alexion/aHUS/problem_solution/20210220/test_rate-05/problem_solution.csv"
+etl:
+  registry_count_min: 3
+  p_value_max: 0.05
+  test_rate_min: 0.05
+clinical_mapping:
+  dx:
+    bucket: "s3://pulse-prod/data/code_mappings/ccs_dx_icd10cm_2019.csv"
+    code_field: "ICD-10-CM Code"
+    desc_field: "ICD-10-CM Code Definition"
+    category_field: "Beta Version CCS Category Description"
+  px:
+    bucket: "s3://pulse-prod/data/code_mappings/procedure_code_mapping_snowflake_20200527.csv"
+    code_field: "CODE"
+    desc_field: "CODE_DESCRIPTION"
 problem:
-  limit: 10
+  limit: 250

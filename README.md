@@ -54,7 +54,7 @@ conda create -n setcover -f environment.yml
 Two methods:
 
 1. Makefile: `make`
-2. Manual: `python3 -m pytest tests` from root
+2. Manual: `python3 -m pytest test` from root
 
 ## References:
 

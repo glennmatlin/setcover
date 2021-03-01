@@ -1,10 +1,10 @@
-.PHONY: install test
+.PHONY: install tests
 
-default: test
+default: tests
 
 install:
 	pip install --upgrade .
 
-test:
+tests:
 	PYTHONPATH=. python3 -m pytest --log-cli-level=0 tests
 	#SPARK_HOME /opt/spark
