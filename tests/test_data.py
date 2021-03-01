@@ -101,4 +101,8 @@ data = [
     ),
 ]
 
-df = pd.DataFrame(data, columns=["set_id", "set_include", "set_exclude"])
+exclusion_df = pd.DataFrame(
+    exclusion_data, columns=["set_id", "set_include", "set_exclude"]
+)
+
+test_data = pd.read_csv('tests/data/test_data_20210217.csv', index_col=0)
